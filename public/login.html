@@ -6,7 +6,6 @@
   <title>Login - Sistema</title>
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Estilos customizáveis -->
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -76,37 +75,77 @@
     .footer-text a:hover {
       text-decoration: underline;
     }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      visibility: hidden;
+      opacity: 0;
+      transition: all 0.3s;
+    }
+    .modal.show {
+      visibility: visible;
+      opacity: 1;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      width: 300px;
+    }
+    .modal-content input {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
   </style>
 </head>
 <body>
 
-  <div class="login-container">
-    <div class="login-header">
-      <h2>Bem-vindo</h2>
-      <p>Faça login para acessar o sistema</p>
-    </div>
-
-    <form id="loginForm">
-      <input type="email" id="email" name="email" required class="input-field" placeholder="seuemail@dominio.com">
-      <input type="password" id="password" name="password" required class="input-field" placeholder="********">
-
-      <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center">
-          <input type="checkbox" id="remember" class="h-4 w-4 text-blue-500 border-gray-300 rounded">
-          <label for="remember" class="ml-2 text-gray-700 text-sm">Lembrar-me</label>
-        </div>
-        <a href="#" class="text-blue-500 text-sm hover:underline">Esqueci a senha</a>
-      </div>
-
-      <button type="submit" class="btn-login">Entrar</button>
-    </form>
-
-    <p class="footer-text">
-      Não tem uma conta? <a href="#">Crie aqui</a>
-    </p>
+<div class="login-container">
+  <div class="login-header">
+    <h2>Bem-vindo</h2>
+    <p>Faça login para acessar o sistema</p>
   </div>
 
-  <script>
+  <form id="loginForm">
+    <input type="email" id="email" name="email" required class="input-field" placeholder="seuemail@dominio.com">
+    <input type="password" id="password" name="password" required class="input-field" placeholder="********">
+
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center">
+        <input type="checkbox" id="remember" class="h-4 w-4 text-blue-500 border-gray-300 rounded">
+        <label for="remember" class="ml-2 text-gray-700 text-sm">Lembrar-me</label>
+      </div>
+      <a href="#" id="esqueciSenha" class="text-blue-500 text-sm hover:underline">Esqueci a senha</a>
+    </div>
+
+    <button type="submit" class="btn-login">Entrar</button>
+  </form>
+
+  <p class="footer-text">
+    Não tem uma conta? <a href="#">Crie aqui</a>
+  </p>
+</div>
+
+<!-- Modal de redefinição de senha -->
+<div id="modalRedefinir" class="modal">
+  <div class="modal-content">
+    <h3 class="text-lg font-semibold mb-2">Redefinir senha</h3>
+    <p class="text-sm mb-2">Digite seu e-mail para receber o link:</p>
+    <input type="email" id="emailRedefinir" placeholder="seuemail@dominio.com" class="input-field">
+    <div class="flex justify-end gap-2">
+      <button id="btnCancelar" class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Cancelar</button>
+      <button id="btnEnviarLink" class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<script>
 const form = document.getElementById('loginForm');
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -133,7 +172,43 @@ form.addEventListener('submit', async (e) => {
     alert('Erro ao logar');
   }
 });
-</script>
 
+// Modal de redefinição
+const linkEsqueci = document.getElementById('esqueciSenha');
+const modal = document.getElementById('modalRedefinir');
+const btnCancelar = document.getElementById('btnCancelar');
+const btnEnviar = document.getElementById('btnEnviarLink');
+const inputEmail = document.getElementById('emailRedefinir');
+
+linkEsqueci.addEventListener('click', (e) => {
+  e.preventDefault();
+  modal.classList.add('show');
+});
+
+btnCancelar.addEventListener('click', () => modal.classList.remove('show'));
+
+btnEnviar.addEventListener('click', async () => {
+  const email = inputEmail.value;
+  if (!email) return alert('Digite um e-mail válido');
+
+  try {
+    const res = await fetch('/api/esqueci-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert('Link de redefinição enviado! Verifique seu e-mail.');
+      modal.classList.remove('show');
+    } else {
+      alert(data.error);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Erro ao enviar link de redefinição');
+  }
+});
+</script>
 </body>
 </html>

@@ -5,6 +5,8 @@ const { google } = require('googleapis');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 
@@ -392,6 +394,87 @@ app.post('/api/login', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erro no login' });
+  }
+});
+
+// Configurar transporte de e-mail
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // ou outro SMTP
+  auth: {
+    user: process.env.GMAIL_NAME,         // seu e-mail
+    pass: process.env.GMAIL_PASSWORD,        // senha de app
+  }
+});
+
+// =======================
+// Solicitar redefinição de senha
+// =======================
+app.post('/api/solicitar-redefinicao', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email é obrigatório' });
+
+  try {
+    const usuarios = await lerAba('usuarios', 'usuarios!A:I'); // H = coluna tokenRedefinicao
+    const user = usuarios.find(u => u.email === email);
+    if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
+
+    const token = uuidv4();
+    const validade = Date.now() + 2 * 60 * 60 * 1000; // 2 horas
+
+    // salvar token e validade na planilha
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `usuarios!H${linhaPlanilha}:I${linhaPlanilha}`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: [[token, validade]] }
+    });
+
+    const link = `https://seusite.com/redefinir-senha.html?token=${token}`;
+    await transporter.sendMail({
+      from: '"Sistema Condometas" <seuemail@gmail.com>',
+      to: email,
+      subject: 'Redefinição de Senha',
+      html: `<p>Clique no link abaixo para redefinir sua senha:</p>
+             <a href="${link}">${link}</a>
+             <p>O link expira em 2 horas.</p>`
+    });
+
+    res.json({ message: 'E-mail enviado com sucesso!' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao solicitar redefinição' });
+  }
+});
+
+// =======================
+// Redefinir senha
+// =======================
+app.post('/api/redefinir-senha', async (req, res) => {
+  const { token, novaSenha } = req.body;
+  if (!token || !novaSenha) return res.status(400).json({ error: 'Token e nova senha são obrigatórios' });
+
+  try {
+    const usuarios = await lerAba('usuarios', 'usuarios!A:I');
+    const user = usuarios.find(u => u.tokenRedefinicao === token);
+    if (!user) return res.status(400).json({ error: 'Token inválido' });
+
+    if (Date.now() > Number(user.tokenValidade)) return res.status(400).json({ error: 'Token expirado' });
+
+    const hash = await bcrypt.hash(novaSenha, 10);
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `usuarios!G${linhaPlanilha}:I${linhaPlanilha}`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: [[hash, '', '']] }
+    });
+
+    res.json({ message: 'Senha redefinida com sucesso!' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao redefinir senha' });
   }
 });
 
