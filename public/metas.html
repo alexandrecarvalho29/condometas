@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Condometas - Acompanhamento de Metas</title>
+  <link rel="stylesheet" href="metas.css">
+</head>
+
+<body>
+  <header class="header">
+    <div class="left-group">
+      <div class="titulo">Condometas</div>
+      <button id="menuButton">
+      <div class="hamburguer">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <span class="menu-text">MENU</span>
+    </button>      
+    </div>
+
+    <!-- <section class="user-info">
+      <span>Alexandre Carvalho</span>
+      <span class="user-role">Admin</span>
+    </section> -->
+
+    <div id="dropdownMenu">
+      <a href="metas.html">Metas</a>
+      <a href="usuarios.html">Usuários</a>
+      <a href="relatorio.html">Relatórios</a>
+    </div>
+  </header>
+
+
+  <main class="container">
+    <h1>Acompanhamento de Metas</h1>
+
+    <!-- Cards de Status -->
+<section id="status-section" class="status-section">
+  <div id="statusCards" class="status-cards">
+    <div class="status-card bg-blue">
+      <span>Total de Metas</span>
+      <strong id="totalMetas">0</strong>
+    </div>
+    <div class="status-card bg-green">
+      <span>No Prazo</span>
+      <strong id="noPrazo">0</strong>
+    </div>
+    <div class="status-card bg-red">
+      <span>Atrasado</span>
+      <strong id="atrasado">0</strong>
+    </div>
+    <div class="status-card bg-yellow">
+      <span>Pendente</span>
+      <strong id="pendente">0</strong>
+    </div>
+
+    <!-- Card Porcentagem com mini tabela dentro -->
+    <div class="status-card bg-gray porcentagem-card">
+      <span>Porcentagem</span>
+      <strong id="porcentagem">0%</strong>
+
+      <!-- Mini tabela que aparece ao passar o mouse -->
+      <div class="mini-tabela">
+        <table>
+          <thead>
+            <tr>
+              <th>Meta</th>
+              <th>% No Prazo</th>
+            </tr>
+          </thead>
+          <tbody id="miniTabelaBody">
+            <tr>
+              <td>Meta 1</td>
+              <td>80%</td>
+            </tr>
+            <tr>
+              <td>Meta 2</td>
+              <td>65%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <!-- Filtros -->
+      <form id="filtros" class="filters" aria-label="Filtros de busca">
+      
+      <div class="filter-group">
+          <label for="filtroMesApuracao">Mês Apuração</label>
+          <select id="filtroMesApuracao">
+              <option value="">Todos os Meses</option> 
+          </select>
+      </div>
+
+      <div class="filter-group">
+          <label for="filtroMeta">Meta</label>
+          <select id="filtroMeta">
+              <option value="">Todas as Metas</option>
+          </select>
+      </div>
+
+      <div class="filter-group">
+          <label for="filtroCondominio">Condomínio</label>
+          <select id="filtroCondominio">
+              <option value="">Todos os Condomínios</option>
+          </select>
+      </div>
+
+      <div class="filter-group">
+          <label for="filtroGerente">Gerente</label>
+          <select id="filtroGerente">
+              <option value="">Todos os Gerentes</option>
+          </select>
+      </div>
+
+      <div class="filter-group">
+          <label for="filtroCoordenador">Coordenador</label>
+          <select id="filtroCoordenador">
+              <option value="">Todos os Coordenadores</option>
+          </select>
+      </div>
+
+      <div class="filter-group">
+          <label for="filtroFinanceiro">Financeiro</label>
+          <select id="filtroFinanceiro">
+              <option value="">Todos os Financeiros</option>
+          </select>
+      </div>
+
+      <div class="filter-group">
+          <label for="filtroContabil">Contábil</label>
+          <select id="filtroContabil">
+              <option value="">Todos os Contábeis</option>
+          </select>
+      </div>
+
+      <div class="filter-group">
+          <label for="filtroStatus">Status</label>
+          <select id="filtroStatus">
+              <option value="">Todos os Status</option>
+              <option value="Pendente">Pendente</option>
+              <option value="Atrasado">Atrasado</option>
+              <option value="No prazo">No Prazo</option>
+          </select>
+      </div>
+
+      <div class="filter-group">
+          <label for="filtroParticularidade">Particularidade</label>
+          <select id="filtroParticularidade">
+            <option value="">Todos</option>
+            <option value=1>Sim</option>
+            <option value=0>Não</option>
+          </select>
+      </div>
+
+      <div class="filter-group">
+          <label for="filtroNaoGerar">Não gerar</label>
+          <select id="filtroNaoGerar">
+            <option value="">Todos</option>
+            <option value=1>Sim</option>
+            <option value=0>Não</option>
+          </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Data condomínio</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="date" id="dataInicio-condominio">
+          <span>até</span>
+          <input type="date" id="dataFim-condominio">
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Data limite</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="date" id="dataInicio-limite">
+          <span>até</span>
+          <input type="date" id="dataFim-limite">
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Data envio</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="date" id="dataInicio-envio">
+          <span>até</span>
+          <input type="date" id="dataFim-envio">
+        </div>
+      </div>
+
+    </form>
+
+    <!-- Tabela principal -->
+    <section class="table-wrapper">
+      <section id="top-metas">
+        <h2>Lista de Metas</h2>
+        <section id="botoes-top-metas">
+        <button class="botao-classe1" id="editarEmMassa">Editar em Massa</button>
+        <button class="botao-classe1" id="limpar-filtros">Limpar Filtros</button>
+        <button class="botao-classe1" id="exportarExcel">Exportar Excel</button>
+        <button class="botao-classe2" id="novoCondominio">Novo Condomínio</button>
+      </section> 
+    </section>
+      <table>
+        <thead>
+          <tr>
+            <th>Ações</th>
+            <th>ID</th>
+            <th>Meta</th>
+            <th>Mês</th>            
+            <th>Condomínio</th>
+            <th>Financeiro</th>
+            <th>Contábil</th>
+            <th>Status</th>
+            <th>Data Cond</th>
+            <th>Data Limite</th>
+            <th>Data Envio</th>
+            <th>Gerente</th>
+            <th>Coordenador</th>
+            <th>Particularidade</th>
+            <th>Observacoes</th>   
+          </tr>
+        </thead>
+        <tbody id="metasTable"></tbody>
+      </table>
+    </section>
+
+    <!-- Paginação -->
+    <nav class="pagination">
+      <button id="prevPage">&larr; Anterior</button>
+      <span id="pageInfo"></span>
+      <button id="nextPage">Próxima &rarr;</button>
+    </nav>
+  </main>
+    <!-- Modal de Edição -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn">&times;</span>
+    <h2>Editar Meta</h2>
+
+    <!-- Área informativa -->
+      <div id="infoHeader" class="info-header">
+        <div class="info-item">
+        <span class="info-label">Id:</span>
+        <span id="displayId" class="info-value"></span>
+      </div>
+        <div class="info-item">
+          <span class="info-label">Meta:</span>
+          <span id="displayTipoMeta" class="info-value"></span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Condomínio:</span>
+          <span id="displayCondominio" class="info-value"></span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Mês de Apuração:</span>
+          <span id="displayMesApuracao" class="info-value"></span>
+        </div>
+      </div>
+
+    <hr class="divider">
+
+    <!-- Formulário de edição -->
+    <form id="editForm">
+      <input type="hidden" id="editId" name="editId">
+
+      <div class="form-group">
+        <label>Gerente</label>
+        <input type="text" id="editGerente" name="editGerente">
+      </div>
+      <div class="form-group">
+        <label>Coordenador</label>
+        <input type="text" id="editCoordenador" name="editCoordenador">
+      </div>
+      <div class="form-group">
+        <label>Financeiro</label>
+        <input type="text" id="editFinanceiro" name="editFinanceiro">
+      </div>
+      <div class="form-group">
+        <label>Contábil</label>
+        <input type="text" id="editContabil" name="editContabil">
+      </div>
+      <div class="form-group">
+        <label>Data Condomínio</label>
+        <input type="date" id="editDataCondominio" name="editDataCondominio">
+      </div>
+      <div class="form-group">
+        <label>Data Limite</label>
+        <input type="date" id="editDataLimite" name="editDataLimite" readonly>
+      </div>
+      <div class="form-group">
+        <label>Data Envio</label>
+        <input type="date" id="editDataEnvio" name="editDataEnvio">
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <input type="text" id="editStatus" name="editStatus" readonly>
+      </div>
+      <div class="form-group checkbox-group">
+        <label><input type="checkbox" id="editNaoGerar" name="editNaoGerar"> Não gerar próxima Meta</label>
+      </div>
+      <div class="form-group checkbox-group">
+        <label><input type="checkbox" id="editParticularidade" name="editParticularidade"> Particularidade</label>
+      </div>
+      <div class="form-group full-width">
+        <label for="editObservacao">Observações</label>
+        <textarea id="editObservacao" name="editObservacao" placeholder="Digite seus comentários..." rows="4"></textarea>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" id="salvar">Salvar Alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Editar em Massa -->
+<div id="modalEditarMassa" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close-btn" id="fecharModalMassa">&times;</span>
+    <h2>Editar em Massa</h2>
+    <div class="alert-warning">
+      ⚠️ <strong>ATENÇÃO:</strong> Essa ação trocará o valor de todas as metas filtradas na tela atual pelo novo valor, da coluna selecionada.
+    </div> 
+
+    <div class="form-group">
+      <label for="colunaSelecionada">Selecione a coluna:</label>
+      <select id="colunaSelecionada">
+        <option value="gerente">Gerente</option>
+        <option value="coordenador">Coordenador</option>
+        <option value="financeiro">Financeiro</option>
+        <option value="contabil">Contábil</option>
+        <option value="data_condominio">Data Condomínio</option>
+        <option value="data_envio">Data Envio</option>
+        <option value="particularidade">Particularidade</option>
+        <option value="nao_gerar">Não gerar próxima Meta</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="novoValor">Novo valor:</label>
+      <input type="text" id="novoValor" placeholder="Digite o novo valor">
+    </div>
+
+    <div class="button-group">
+      <button id="salvarEdicaoMassa">Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Novo Condomínio -->
+<div id="modalNovoCondominio" class="modal" style="display:none;">
+  <div class="modal-content horizontal">
+    <span class="close-btn" id="fecharModalCondominio">&times;</span>
+    <h2>Novo Condomínio</h2>
+
+    <form id="formNovoCondominio">
+
+      <!-- Nome do Condomínio -->
+      <div class="form-group full-width">
+        <label for="nomeCondominio">Nome do Condomínio:</label>
+        <input type="text" id="nomeCondominio" name="nomeCondominio" placeholder="Digite o nome do condomínio" required>
+      </div>
+
+      <!-- Linhas de Metas -->
+      <div id="linhasMetas">
+        <h3>Selecionar Metas</h3>
+
+        <!-- Linha inicial -->
+        <div class="meta-linha">
+          <div class="coluna">
+            <label>Meta</label>
+            <select name="meta">
+              <option value="">Selecione a Meta</option>
+            </select>
+          </div>
+          <div class="coluna">
+            <label>Gerente</label>
+            <select name="gerente" required></select>
+          </div>
+          <div class="coluna">
+            <label>Coordenador</label>
+            <select name="coordenador" required></select>
+          </div>
+          <div class="coluna">
+            <label>Financeiro</label>
+            <select name="financeiro" required></select>
+          </div>
+          <div class="coluna">
+            <label>Contabil</label>
+            <select name="contabil" required></select>
+          </div>
+          <div class="coluna">
+            <label>Data Condomínio</label>
+            <input type="date" name="dataCondominio" required>
+          </div>
+          <button type="button" class="remover-linha">🗑️</button>
+        </div>
+      </div>
+
+      <!-- Botão para adicionar mais linhas -->
+      <button type="button" id="adicionarLinha" class="botao-classe2">+ Adicionar Meta</button>
+
+      <div class="button-group">
+        <button type="submit" id="salvarCondominio">Salvar Condomínio</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+  <script>
+  let metas = [];
+  let metasFiltradasGlobais = [];
+  let paginaAtual = 1;
+  const linhasPorPagina = 20;
+
+  const statusEls = {
+    total: document.getElementById('totalMetas'),
+    noPrazo: document.getElementById('noPrazo'),
+    atrasado: document.getElementById('atrasado'),
+    pendente: document.getElementById('pendente'),
+    porcentagem: document.getElementById('porcentagem')
+  };
+
+  function getStatusBadge(status) {
+    const safeStatus = status.toLowerCase().replace(/\s/g, '-');
+    return `<span class="badge badge-${safeStatus}">${status}</span>`;
+  }
+
+  async function carregarMetas() {
+    try {
+      const res = await fetch('http://localhost:3000/api/metas');
+      metas = res.ok ? await res.json() : [];
+    } catch (err) {
+      console.error('Erro ao carregar metas:', err);
+    } finally {
+      renderizarTabela();
+    }
+  }
+
+  function atualizarStatusCards(metasFiltradas) {
+    const total = metasFiltradas.length;
+    const noPrazo = metasFiltradas.filter(m => m.status === 'No prazo').length;
+    const atrasado = metasFiltradas.filter(m => m.status === 'Atrasado').length;
+    const pendente = metasFiltradas.filter(m => m.status === 'Pendente').length;
+    const porcentagem = total ? ((noPrazo / total) * 100).toFixed(2) + '%' : '0%';
+
+    statusEls.total.textContent = total;
+    statusEls.noPrazo.textContent = noPrazo;
+    statusEls.atrasado.textContent = atrasado;
+    statusEls.pendente.textContent = pendente;
+    statusEls.porcentagem.textContent = porcentagem;
+
+    atualizarMiniTabela(metasFiltradas);
+  }
+
+  function atualizarMiniTabela(metasFiltradas) {
+    const tbody = document.getElementById('miniTabelaBody');
+    tbody.innerHTML = '';
+    const grupos = {};
+
+    metasFiltradas.forEach(m => {
+      if (!grupos[m.meta]) grupos[m.meta] = { total: 0, noPrazo: 0 };
+      grupos[m.meta].total++;
+      if (m.status === 'No prazo') grupos[m.meta].noPrazo++;
+    });
+
+    Object.entries(grupos).forEach(([meta, { total, noPrazo }]) => {
+      const perc = ((noPrazo / total) * 100).toFixed(2) + '%';
+      tbody.innerHTML += `<tr><td>${meta}</td><td>${perc}</td></tr>`;
+    });
+  }
+
+// -------- MENU DROPDOWN -------- //
+
+  const menuButton = document.getElementById('menuButton');
+  const dropdownMenu = document.getElementById('dropdownMenu');
+
+  // Alterna visibilidade do menu
+  menuButton.addEventListener('click', (e) => {
+    e.stopPropagation(); // evita fechar imediatamente
+    dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+  });
+
+  // Fecha o menu ao clicar fora
+  document.addEventListener('click', () => {
+    dropdownMenu.style.display = 'none';
+  });
+
+// ------------------------ FILTRAR METAS ---------------------------- //
+
+  function filtrarMetas() {
+  const filtros = {
+    meta: document.getElementById('filtroMeta').value.toLowerCase(),
+    condominio: document.getElementById('filtroCondominio').value.toLowerCase(),
+    status: document.getElementById('filtroStatus').value,
+    mes_apuracao: document.getElementById('filtroMesApuracao').value,
+    financeiro: document.getElementById('filtroFinanceiro').value.toLowerCase(),
+    contabil: document.getElementById('filtroContabil').value.toLowerCase(),
+    gerente: document.getElementById('filtroGerente').value.toLowerCase(),
+    coordenador: document.getElementById('filtroCoordenador').value.toLowerCase(),
+    particularidade: document.getElementById('filtroParticularidade').value,
+    nao_gerar: document.getElementById('filtroNaoGerar').value,
+
+    dataInicioCondominio: document.getElementById('dataInicio-condominio').value,
+    dataFimCondominio: document.getElementById('dataFim-condominio').value,
+    dataInicioLimite: document.getElementById('dataInicio-limite').value,
+    dataFimLimite: document.getElementById('dataFim-limite').value,
+    dataInicioEnvio: document.getElementById('dataInicio-envio').value,
+    dataFimEnvio: document.getElementById('dataFim-envio').value
+  };
+
+  // Função auxiliar para transformar dd/MM/yyyy em Date
+  function parseDate(ddmmyyyy) {
+    if (!ddmmyyyy) return null;
+    const [dia, mes, ano] = ddmmyyyy.split('/').map(Number);
+    return new Date(ano, mes - 1, dia);
+  }
+
+  return metas.filter(m => {
+    // filtros básicos
+    if (filtros.meta && !m.meta.toLowerCase().includes(filtros.meta)) return false;
+    if (filtros.condominio && !m.condominio.toLowerCase().includes(filtros.condominio)) return false;
+    if (filtros.status && m.status !== filtros.status) return false;
+    if (filtros.mes_apuracao && m.mes_apuracao !== filtros.mes_apuracao) return false;
+    if (filtros.financeiro && !m.financeiro.toLowerCase().includes(filtros.financeiro)) return false;
+    if (filtros.contabil && !m.contabil.toLowerCase().includes(filtros.contabil)) return false;
+    if (filtros.gerente && !m.gerente.toLowerCase().includes(filtros.gerente)) return false;
+    if (filtros.coordenador && !m.coordenador.toLowerCase().includes(filtros.coordenador)) return false;
+    if (filtros.particularidade && Number(m.particularidade) !== Number(filtros.particularidade)) return false;
+    if (filtros.nao_gerar && Number(m.nao_gerar) !== Number(filtros.nao_gerar)) return false;
+
+    // filtros de datas
+    const dataCond = parseDate(m.data_condominio);
+    const dataLim = parseDate(m.data_limite);
+    const dataEnv = parseDate(m.data_envio);
+
+    if (filtros.dataInicioCondominio && dataCond < new Date(filtros.dataInicioCondominio)) return false;
+    if (filtros.dataFimCondominio && dataCond > new Date(filtros.dataFimCondominio)) return false;
+
+    if (filtros.dataInicioLimite && dataLim < new Date(filtros.dataInicioLimite)) return false;
+    if (filtros.dataFimLimite && dataLim > new Date(filtros.dataFimLimite)) return false;
+
+    if (filtros.dataInicioEnvio && dataEnv < new Date(filtros.dataInicioEnvio)) return false;
+    if (filtros.dataFimEnvio && dataEnv > new Date(filtros.dataFimEnvio)) return false;
+
+    return true;
+  });
+}
+
+// Seleciona o botão
+const btnLimpar = document.getElementById('limpar-filtros');
+
+btnLimpar.addEventListener('click', () => {
+  // Seleciona todos os inputs e selects dentro do formulário de filtros
+  const filtros = document.querySelectorAll('#filtros input, #filtros select');
+
+  filtros.forEach(input => {
+    if (input.type === 'checkbox') {
+      input.checked = false; // desmarca checkboxes
+    } else {
+      input.value = ''; // limpa inputs e selects
+    }
+  });
+
+  filtrarMetas();
+  renderizarTabela();
+});
+
+// ------------------------------------- //
+
+  function renderizarTabela() {
+    const filtradas = filtrarMetas();
+    metasFiltradasGlobais = filtrarMetas();
+    atualizarStatusCards(filtradas);
+
+    // Ordena por data_limite (do menor para o maior)
+    filtradas.sort((a, b) => {
+      const dataA = a.data_limite ? parseDate(a.data_limite) : new Date(9999, 0, 1);
+      const dataB = b.data_limite ? parseDate(b.data_limite) : new Date(9999, 0, 1);
+      return dataA - dataB;
+    });
+
+    const totalPaginas = Math.ceil(filtradas.length / linhasPorPagina);
+    const inicio = (paginaAtual - 1) * linhasPorPagina;
+    const fim = inicio + linhasPorPagina;
+    const pagina = filtradas.slice(inicio, fim);
+
+    const tabela = document.getElementById('metasTable');
+    tabela.innerHTML = pagina.map(meta => `
+      <tr>
+        <td><button class="edit-btn" data-id="${meta.id}">✏️</button></td>
+        <td>${meta.id}</td>
+        <td>${meta.meta}</td>
+        <td>${meta.mes_apuracao || ''}</td>
+        <td>${meta.condominio}</td>
+        <td>${meta.financeiro}</td>
+        <td>${meta.contabil}</td>
+        <td>${getStatusBadge(meta.status)}</td>
+        <td>${meta.data_condominio}</td>
+        <td>${meta.data_limite || ''}</td>
+        <td>${meta.data_envio || ''}</td>
+        <td>${meta.gerente}</td>
+        <td>${meta.coordenador}</td>          
+        <td>${meta.particularidade || ''}</td>
+        <td>${meta.observacao || ''}</td>
+      </tr>`).join('');
+
+    document.getElementById('pageInfo').textContent = `Página ${paginaAtual} de ${totalPaginas}`;
+    document.getElementById('prevPage').disabled = paginaAtual === 1;
+    document.getElementById('nextPage').disabled = paginaAtual === totalPaginas || totalPaginas === 0;
+  }
+
+  document.querySelectorAll('#filtros input, #filtros select').forEach(el => {
+    el.addEventListener('input', () => { paginaAtual = 1; renderizarTabela(); });
+    el.addEventListener('change', () => { paginaAtual = 1; renderizarTabela(); });
+  });
+
+  document.getElementById('prevPage').addEventListener('click', () => {
+    if (paginaAtual > 1) { paginaAtual--; renderizarTabela(); }
+  });
+  document.getElementById('nextPage').addEventListener('click', () => {
+    const filtradas = filtrarMetas();
+    const totalPaginas = Math.ceil(filtradas.length / linhasPorPagina);
+    if (paginaAtual < totalPaginas) { paginaAtual++; renderizarTabela(); }
+  });
+
+// ----------------FORMATAÇÃO DE DATAS--------------------- //
+
+// Formatação de datas
+function formatDateForInput(dateStr) {
+  // converte dd/MM/yyyy -> yyyy-MM-dd para preencher input type=date
+  if (!dateStr) return '';
+  const [dia, mes, ano] = dateStr.split('/').map(Number);
+  return `${ano}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+}
+
+function formatDateForSheets(dateInputValue) {
+  // converte yyyy-MM-dd -> dd/MM/yyyy para salvar
+  if (!dateInputValue) return '';
+  const [ano, mes, dia] = dateInputValue.split('-');
+  return `${dia}/${mes}/${ano}`;
+}
+
+// Função auxiliar para transformar dd/MM/yyyy em Date
+function parseDate(ddmmyyyy) {
+  if (!ddmmyyyy) return null;
+  const [dia, mes, ano] = ddmmyyyy.split('/').map(Number);
+  return new Date(ano, mes - 1, dia); // mês começa do 0 no JS
+}
+
+// ----------------MODAL DE EDIÇÃO------------------ //
+
+
+// Modal
+const modal = document.getElementById('editModal');
+const closeBtn = modal.querySelector('.close-btn');
+const editForm = document.getElementById('editForm');
+
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('edit-btn')) {
+    const metaId = e.target.dataset.id;
+    const meta = metas.find(m => m.id == metaId);
+
+    // Preencher o formulário
+    editForm.editId.value = meta.id,
+    editForm.editGerente.value = meta.gerente;
+    editForm.editCoordenador.value = meta.coordenador;
+    editForm.editFinanceiro.value = meta.financeiro;
+    editForm.editContabil.value = meta.contabil;
+    editForm.editDataCondominio.value = formatDateForInput(meta.data_condominio) || '';
+    editForm.editParticularidade.checked = Number(meta.particularidade) === 1;
+    editForm.editNaoGerar.checked = Number(meta.nao_gerar) === 1;
+    editForm.editDataEnvio.value = formatDateForInput(meta.data_envio) || '';
+    editForm.editDataLimite.value = formatDateForInput(meta.data_limite) || '';
+    editForm.editStatus.value = meta.status;
+    editForm.editObservacao.value = meta.observacao;
+    document.getElementById('displayId').innerText = meta.id;
+    document.getElementById('displayTipoMeta').innerText = meta.meta;
+    document.getElementById('displayCondominio').innerText = meta.condominio;
+    document.getElementById('displayMesApuracao').innerText = meta.mes_apuracao;
+
+    modal.style.display = 'block';
+  }
+});
+
+closeBtn.addEventListener('click', () => {
+  modal.style.display = 'none';
+});
+
+window.addEventListener('click', e => {
+  if (e.target == modal) modal.style.display = 'none';
+});
+
+// Salvar alterações
+editForm.addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const id = editForm.editId.value;
+
+  // Pega os valores diretamente do input type="date" (yyyy-MM-dd)
+  const dataCondominioInput = editForm.editDataCondominio.value;
+  const dataEnvioInput = editForm.editDataEnvio.value;
+  const dataLimiteInput = editForm.editDataLimite.value;
+
+  // Monta objeto atualizado com datas já formatadas como dd/MM/yyyy
+  const dadosAtualizados = {
+    id,
+    meta: document.getElementById('displayTipoMeta').innerText,
+    condominio: document.getElementById('displayCondominio').innerText,
+    gerente: editForm.editGerente.value,
+    coordenador: editForm.editCoordenador.value,
+    financeiro: editForm.editFinanceiro.value,
+    contabil: editForm.editContabil.value,
+    data_condominio: formatDateForSheets(dataCondominioInput),
+    particularidade: editForm.editParticularidade.checked ? 1 : 0,
+    observacao: editForm.editObservacao.value,
+    data_envio: formatDateForSheets(dataEnvioInput),
+    nao_gerar: editForm.editNaoGerar.checked ? 1 : 0,
+  };
+
+  try {
+    const response = await fetch(`/api/metas/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dadosAtualizados)
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      const index = metas.findIndex(m => m.id == id);
+      if (index > -1) metas[index] = { ...metas[index], ...dadosAtualizados };
+
+      renderizarTabela();
+      modal.style.display = 'none';
+      alert('Meta salva com sucesso!');
+    } else {
+      alert(`Erro ao salvar: ${result.error}`);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Erro ao conectar à API.');
+  }
+});
+
+// ------------------------------------- //
+
+async function carregarFiltros() {
+  try {
+    const res = await fetch('http://localhost:3000/api/dados');
+    if (!res.ok) throw new Error('Erro ao carregar dados da API');
+    const dados = await res.json();
+
+    // Função para popular select com valores de um array
+    function popularSelect(idSelect, array) {
+      const select = document.getElementById(idSelect);
+      array.sort(); // opcional: ordenar alfabeticamente
+      array.forEach(v => {
+        const option = document.createElement('option');
+        option.value = v;
+        option.textContent = v;
+        select.appendChild(option);
+      });
+    }
+
+    popularSelect('filtroMesApuracao', dados.mes_apuracao);
+    popularSelect('filtroMeta', dados.metas);
+    popularSelect('filtroCondominio', dados.condominios);
+    popularSelect('filtroGerente', dados.gerentes);
+    popularSelect('filtroCoordenador', dados.coordenadores);
+    popularSelect('filtroFinanceiro', dados.analistas);
+    popularSelect('filtroContabil', dados.analistas);
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// ---------------- EXPORTAR CSV --------------------- //
+
+// Botão de exportar
+const btnExportar = document.querySelector('#exportarExcel'); 
+
+btnExportar.addEventListener('click', () => {
+  // Pega os dados filtrados
+  const metasFiltradas = filtrarMetas();
+
+  // Cria CSV
+  let csv = 'ID,Meta,Condomínio,Status,Gerente,Coordenador,Financeiro,Contábil,Data Condomínio,Data Limite,Data Envio,Não Gerar,Particularidade\n';
+
+  metasFiltradas.forEach(m => {
+    csv += [
+      m.id,
+      `"${m.meta}"`,
+      `"${m.condominio}"`,
+      m.status,
+      `"${m.gerente}"`,
+      `"${m.coordenador}"`,
+      `"${m.financeiro}"`,
+      `"${m.contabil}"`,
+      m.data_condominio,
+      m.data_limite,
+      m.data_envio,
+      m.nao_gerar,
+      m.particularidade
+    ].join(',') + '\n';
+  });
+
+  // Cria link temporário pra download
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', 'metas_filtradas.csv');
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+
+// ----------------- EDICAO EM MASSA -------------------- //
+
+// Abrir modal ao clicar no botão "Editar em Massa"
+document.querySelector('.botao-classe1').addEventListener('click', () => {
+  document.getElementById('modalEditarMassa').style.display = 'flex';
+});
+
+// Fechar modal
+document.getElementById('fecharModalMassa').addEventListener('click', () => {
+  document.getElementById('modalEditarMassa').style.display = 'none';
+});
+
+// Fechar modal clicando fora do conteúdo
+window.addEventListener('click', (e) => {
+  const modal = document.getElementById('modalEditarMassa');
+  if (e.target === modal) modal.style.display = 'none';
+});
+
+// Carregar opções da API para selects
+let opcoesPorColuna = {};
+async function carregarOpcoes() {
+  try {
+    const res = await fetch('http://localhost:3000/api/dados');
+    const dados = await res.json();
+
+    opcoesPorColuna = {
+      gerente: dados.gerentes,
+      coordenador: dados.coordenadores,
+      financeiro: dados.analistas,
+      contabil: dados.analistas,
+      nao_gerar: [
+        { valor: 1, texto: 'Não gerar' },
+        { valor: 0, texto: 'Gerar' }
+      ],
+      particularidade: [
+        { valor: 1, texto: 'Sim' },
+        { valor: 0, texto: 'Não' }
+      ]     
+    };
+  } catch (err) {
+    console.error(err);
+  }
+}
+carregarOpcoes();
+
+// Atualiza o campo de valor conforme a coluna selecionada
+const colunaSelecionada = document.getElementById('colunaSelecionada');
+const valorContainer = document.querySelector('#novoValor').parentElement;
+
+colunaSelecionada.addEventListener('change', () => {
+  const coluna = colunaSelecionada.value;
+
+  // Limpa o container
+  valorContainer.innerHTML = `<label for="novoValor">Novo valor:</label>`;
+
+  const opcoes = opcoesPorColuna[coluna];
+
+  // Se a coluna é de data
+  if (['data_condominio', 'data_limite', 'data_envio'].includes(coluna)) {
+    const input = document.createElement('input');
+    input.type = 'date';
+    input.id = 'novoValor';
+    valorContainer.appendChild(input);
+  }
+  // Se há opções de select (Sim/Não ou listas)
+  else if (opcoes && opcoes.length > 0) {
+    const select = document.createElement('select');
+    select.id = 'novoValor';
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Selecione';
+    select.appendChild(placeholder);
+
+    opcoes.forEach(v => {
+      const option = document.createElement('option');
+      if (typeof v === 'object') {
+        option.value = v.valor;
+        option.textContent = v.texto;
+      } else {
+        option.value = v;
+        option.textContent = v;
+      }
+      select.appendChild(option);
+    });
+
+    valorContainer.appendChild(select);
+  }
+  // Se não tiver nada específico, deixa input texto
+  else {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'novoValor';
+    input.placeholder = 'Digite o novo valor';
+    valorContainer.appendChild(input);
+  }
+});
+
+// Salvar edição em massa usando IDs filtrados
+document.getElementById('salvarEdicaoMassa').addEventListener('click', async () => {
+  const coluna = document.getElementById('colunaSelecionada').value;
+  let valor = document.getElementById('novoValor').value;
+
+  if (!valor && valor !== '0') { // permite zero
+    alert('Informe um valor para atualizar!');
+    return;
+  }
+
+  // Converte para número se for coluna de 0/1
+  if (coluna === 'nao_gerar' || coluna === 'particularidade') {
+    valor = Number(valor);
+  }
+
+  // Pega os IDs das metas filtradas
+  const metasFiltradas = filtrarMetas();
+  const ids = metasFiltradas.map(m => m.id);
+
+  if (ids.length === 0) {
+    alert('Nenhuma meta selecionada para atualização.');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/metasAtualizarPorIds', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids, coluna, valor })
+    });
+
+    const data = await res.json();
+    alert(data.message);
+    document.getElementById('modalEditarMassa').style.display = 'none';
+    renderizarTabela(); // atualiza a tabela
+  } catch (err) {
+    console.error(err);
+    alert('Erro ao atualizar metas.');
+  }
+});
+
+// --------------MODAL NOVO CONDOMINIO--------------- //
+
+async function carregarOpcoes() {
+  try {
+    const res = await fetch('http://localhost:3000/api/dados');
+    const dados = await res.json();
+
+    return {
+      condominios: dados.condominios || [],
+      gerentes: dados.gerentes || [],
+      coordenadores: dados.coordenadores || [],
+      analistas: dados.analistas || [], // para financeiro e contábil
+      metas: dados.metas || [] // lista de tipos de meta (balancete, taxa, etc.)
+    };
+  } catch (err) {
+    console.error('Erro ao carregar opções:', err);
+    return { condominios: [], gerentes: [], coordenadores: [], analistas: [], metas: [] };
+  }
+}
+
+// Função auxiliar para criar selects dinâmicos
+function criarSelect(nome, opcoes, label) {
+  const select = document.createElement("select");
+  select.name = nome;
+
+  const optionInicial = document.createElement("option");
+  optionInicial.value = "";
+  optionInicial.textContent = `Selecione o ${label}`;
+  select.appendChild(optionInicial);
+
+  opcoes.forEach(v => {
+    const option = document.createElement("option");
+    option.value = v;
+    option.textContent = v;
+    select.appendChild(option);
+  });
+
+  return select;
+}
+
+// Abrir modal e carregar opções
+document.getElementById("novoCondominio").addEventListener("click", async () => {
+  document.getElementById("modalNovoCondominio").style.display = "flex";
+
+  // Carrega dados da API
+  const { condominios, gerentes, coordenadores, analistas, metas } = await carregarOpcoes();
+
+  // Atualiza selects das linhas existentes (se houver)
+  document.querySelectorAll("#linhasMetas .meta-linha").forEach(linha => {
+    const selects = {
+      meta: linha.querySelector('select[name="meta"]'),
+      gerente: linha.querySelector('select[name="gerente"]'),
+      coordenador: linha.querySelector('select[name="coordenador"]'),
+      financeiro: linha.querySelector('select[name="financeiro"]'),
+      contabil: linha.querySelector('select[name="contabil"]')
+    };
+
+    for (const [campo, select] of Object.entries(selects)) {
+      if (!select) continue;
+      select.innerHTML = `<option value="">Selecione o ${campo.charAt(0).toUpperCase() + campo.slice(1)}</option>`;
+    }
+
+    metas.forEach(v => selects.meta.innerHTML += `<option value="${v}">${v}</option>`);
+    gerentes.forEach(v => selects.gerente.innerHTML += `<option value="${v}">${v}</option>`);
+    coordenadores.forEach(v => selects.coordenador.innerHTML += `<option value="${v}">${v}</option>`);
+    analistas.forEach(v => {
+      selects.financeiro.innerHTML += `<option value="${v}">${v}</option>`;
+      selects.contabil.innerHTML += `<option value="${v}">${v}</option>`;
+    });
+  });
+
+  // Guarda localmente para novas linhas
+  window.opcoesGlobais = { condominios, gerentes, coordenadores, analistas, metas };
+});
+
+// Fechar modal
+document.getElementById("fecharModalCondominio").addEventListener("click", () => {
+  document.getElementById("modalNovoCondominio").style.display = "none";
+});
+
+// Adicionar nova linha de meta
+document.getElementById("adicionarLinha").addEventListener("click", () => {
+  const { gerentes, coordenadores, analistas, metas } = window.opcoesGlobais || {
+    gerentes: [], coordenadores: [], analistas: [], metas: []
+  };
+
+  const container = document.getElementById("linhasMetas");
+  const novaLinha = document.createElement("div");
+  novaLinha.classList.add("meta-linha");
+
+  // Função auxiliar para criar coluna label+select
+  function criarColuna(labelText, nomeSelect, opcoes) {
+    const coluna = document.createElement("div");
+    coluna.classList.add("coluna");
+
+    const label = document.createElement("label");
+    label.textContent = labelText;
+    coluna.appendChild(label);
+
+    const select = criarSelect(nomeSelect, opcoes, labelText);
+    coluna.appendChild(select);
+
+    return coluna;
+  }
+
+  // Criando todas as colunas
+  const colMeta = criarColuna("Meta", "meta", metas);
+  const colGerente = criarColuna("Gerente", "gerente", gerentes);
+  const colCoord = criarColuna("Coordenador", "coordenador", coordenadores);
+  const colFinanceiro = criarColuna("Financeiro", "financeiro", analistas);
+  const colContabil = criarColuna("Contábil", "contabil", analistas);
+
+  const colunaData = document.createElement("div");
+  colunaData.classList.add("coluna");
+  const labelData = document.createElement("label");
+  labelData.textContent = "Data Condomínio";
+  const inputData = document.createElement("input");
+  inputData.type = "date";
+  inputData.name = "dataCondominio";
+  colunaData.append(labelData, inputData);
+
+  const btnRemover = document.createElement("button");
+  btnRemover.type = "button";
+  btnRemover.classList.add("remover-linha");
+  btnRemover.textContent = "🗑️";
+
+  novaLinha.append(colMeta, colGerente, colCoord, colFinanceiro, colContabil, colunaData, btnRemover);
+  container.appendChild(novaLinha);
+});
+
+// Remover linha dinamicamente
+document.getElementById("linhasMetas").addEventListener("click", (e) => {
+  if (e.target.classList.contains("remover-linha")) {
+    e.target.parentElement.remove();
+  }
+});
+
+// Submeter formulário
+document.getElementById("formNovoCondominio").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const nome = document.getElementById("nomeCondominio").value.trim();
+  if (!nome) {
+    alert("Por favor, insira o nome do condomínio.");
+    return;
+  }
+
+  // Verificar se o condomínio já existe
+  const condominiosExistentes = window.opcoesGlobais?.condominios || [];
+  if (condominiosExistentes.some(c => c.toLowerCase() === nome.toLowerCase())) {
+    alert("❌ Este condomínio já está cadastrado!");
+    return;
+  }
+
+  const metas = [...document.querySelectorAll("#linhasMetas .meta-linha")].map(linha => ({
+    meta: linha.querySelector('select[name="meta"]').value,
+    gerente: linha.querySelector('select[name="gerente"]').value,
+    coordenador: linha.querySelector('select[name="coordenador"]').value,
+    financeiro: linha.querySelector('select[name="financeiro"]').value,
+    contabil: linha.querySelector('select[name="contabil"]').value,
+    data_condominio: linha.querySelector('input[name="dataCondominio"]').value
+  }));
+
+  if (metas.length === 0) {
+    alert("Adicione ao menos uma linha de meta.");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:3000/api/novoCondominio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nomeCondominio: nome, metas })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro ao salvar');
+
+    alert(`✅ ${data.message}`);
+    document.getElementById("modalNovoCondominio").style.display = "none";
+    e.target.reset();
+    document.getElementById("linhasMetas").innerHTML = "";
+  } catch (err) {
+    console.error(err);
+    alert("❌ Erro ao salvar o novo condomínio.");
+  }
+});
+
+// -----------FILTROS PADRÕES----------- //
+
+function mesAnoAtual() {
+  const hoje = new Date();
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  const ano = hoje.getFullYear();
+  return `${mes}/${ano}`;
+}
+
+// -----------FILTROS PADRÕES----------- //
+
+window.addEventListener('DOMContentLoaded', () => {
+  carregarFiltros(); // primeiro popular os selects
+  carregarMetas().then(() => {
+    // Define o filtro mes_apuracao como mês/ano atual
+    const filtroMes = document.getElementById('filtroMesApuracao');
+    if (filtroMes) filtroMes.value = mesAnoAtual();
+
+    // Renderiza a tabela já filtrando pelo mes/ano atual
+    renderizarTabela();
+  });
+});
+  </script>
+</body>
+</html>

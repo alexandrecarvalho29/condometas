@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Sistema</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Estilos customizáveis -->
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: radial-gradient(circle, #eed8c3 10%, #df662e);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-container {
+      background-color: #ffffff;
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      max-width: 400px;
+      width: 100%;
+      padding: 2rem;
+    }
+    .login-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #e05414;
+    }
+    .login-header h2 {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    .login-header p {
+      color: #e05414;
+      font-size: 0.95rem;
+    }
+    .input-field {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.75rem;
+      margin-bottom: 1rem;
+      outline: none;
+      transition: all 0.3s;
+    }
+    .input-field:focus {
+      border-color: #e05414;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    }
+    .btn-login {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #e05414;
+      color: white;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    .btn-login:hover {
+      background-color: #e05414;
+    }
+    .footer-text {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.875rem;
+      color: #64748b;
+    }
+    .footer-text a {
+      color: #e05414;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .footer-text a:hover {
+      text-decoration: underline;
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.6.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "SEU_API_KEY",
+      authDomain: "SEU_AUTH_DOMAIN",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_STORAGE_BUCKET",
+      messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+      appId: "SEU_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.loginFirebase = async (email, password) => {
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log('Usuário logado:', user);
+        alert('Login realizado com sucesso!');
+        window.location.href = 'metas.html';
+      } catch (error) {
+        console.error('Erro no login:', error);
+        alert('Erro ao logar: ' + error.message);
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-header">
+      <h2>Bem-vindo</h2>
+      <p>Faça login para acessar o sistema</p>
+    </div>
+
+    <form id="loginForm">
+      <input type="email" id="email" name="email" required class="input-field" placeholder="seuemail@dominio.com">
+      <input type="password" id="password" name="password" required class="input-field" placeholder="********">
+
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center">
+          <input type="checkbox" id="remember" class="h-4 w-4 text-blue-500 border-gray-300 rounded">
+          <label for="remember" class="ml-2 text-gray-700 text-sm">Lembrar-me</label>
+        </div>
+        <a href="#" class="text-blue-500 text-sm hover:underline">Esqueci a senha</a>
+      </div>
+
+      <button type="submit" class="btn-login">Entrar</button>
+    </form>
+
+    <p class="footer-text">
+      Não tem uma conta? <a href="#">Crie aqui</a>
+    </p>
+  </div>
+
+  <script type="module">
+    const form = document.getElementById('loginForm');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = form.email.value;
+      const password = form.password.value;
+      loginFirebase(email, password);
+    });
+  </script>
+
+</body>
+</html>

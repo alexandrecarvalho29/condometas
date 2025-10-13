@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Condometas - Usuários</title>
+  <link rel="stylesheet" href="usuarios.css">
+</head>
+<body>
+  <header class="header">
+    <div class="left-group">
+      <div class="titulo">Condometas</div>
+      <button id="menuButton">
+        <div class="hamburguer">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <span class="menu-text">MENU</span>
+      </button>      
+    </div>
+
+    <div id="dropdownMenu">
+      <a href="metas.html">Metas</a>
+      <a href="usuarios.html">Usuários</a>
+      <a href="relatorio.html">Relatórios</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1>Usuários</h1>
+
+    <!-- Tabela de Usuários -->
+     <button id="btnNewUser" class="edit-user-btn" style="margin-bottom: 15px;">Novo Usuário</button>
+  <section class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Ações</th>
+          <th>ID</th>
+          <th>Login</th>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Cargo</th>
+          <th>Data Criação</th>
+        </tr>
+      </thead>
+      <tbody id="usuariosTable"></tbody>
+    </table>
+  </section>
+
+  <!-- Modal de Edição -->
+  <div id="editUserModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <h2>Editar Usuário</h2>
+      <form id="editUserForm">
+        <input type="hidden" id="editUserId" name="editUserId">
+        <div class="form-group">
+          <label>Login</label>
+          <input type="text" id="editUserLogin" name="editUserLogin" readonly style="background: #f0f0f0;">
+        </div>
+        <div class="form-group">
+          <label>Nome</label>
+          <input type="text" id="editUserName" name="editUserName">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="editUserEmail" name="editUserEmail">
+        </div>
+        <div class="form-group">
+          <label>Cargo</label>
+          <select id="editUserCargo" name="editUserCargo">
+            <option value="admin">Admin</option>
+            <option value="gerente">Gerente</option>
+            <option value="coordenador">Coordenador</option>
+            <option value="analista">Analista</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Data Criação</label>
+          <input type="date" id="editUserDataCriacao" name="editUserDataCriacao" readonly style="background: #f0f0f0;">
+        </div>
+        <button type="submit">Salvar Alterações</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Novo Usuário -->
+  <div id="newUserModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeNewUserModal">&times;</span>
+      <h2>Novo Usuário</h2>
+      <form id="newUserForm">
+        <div class="form-group">
+          <label>Login</label>
+          <input type="text" id="newUserLogin" name="newUserLogin" required>
+        </div>
+        <div class="form-group">
+          <label>Nome</label>
+          <input type="text" id="newUserName" name="newUserName" required>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="newUserEmail" name="newUserEmail" required>
+        </div>
+        <div class="form-group">
+          <label>Cargo</label>
+          <select id="newUserCargo" name="newUserCargo" required>
+            <option value="admin">Admin</option>
+            <option value="gerente">Gerente</option>
+            <option value="coordenador">Coordenador</option>
+            <option value="analista">Analista</option>
+          </select>
+        </div>
+        <button type="submit">Criar Usuário</button>
+      </form>
+    </div>
+  </div>
+
+  </main>
+
+  <script>
+  let usuarios = [];
+
+  async function carregarUsuarios() {
+    try {
+      const res = await fetch('http://localhost:3000/api/usuarios');
+      usuarios = res.ok ? await res.json() : [];
+      renderizarUsuarios();
+    } catch (err) {
+      console.error('Erro ao carregar usuários:', err);
+    }
+  }
+
+  function renderizarUsuarios() {
+    const tabela = document.getElementById('usuariosTable');
+    tabela.innerHTML = usuarios.map(u => `
+      <tr>
+        <td><button class="edit-user-btn" data-id="${u.id}">Editar</button></td>
+        <td>${u.id}</td>
+        <td>${u.nome}</td>
+        <td>${u.login}</td>
+        <td>${u.email}</td>
+        <td>${u.cargo}</td>
+        <td>${u.data_criacao}</td>
+      </tr>
+    `).join('');
+  }
+
+  // Modal de edição
+  const editUserModal = document.getElementById('editUserModal');
+  const editUserForm = document.getElementById('editUserForm');
+  const closeBtn = editUserModal.querySelector('.close-btn');
+
+  document.addEventListener('click', e => {
+    if (e.target.classList.contains('edit-user-btn')) {
+      const id = e.target.dataset.id;
+      const user = usuarios.find(u => u.id == id);
+
+      editUserForm.editUserId.value = user.id;
+      editUserForm.editUserLogin.value = user.login;
+      editUserForm.editUserName.value = user.nome;
+      editUserForm.editUserEmail.value = user.email;
+      editUserForm.editUserCargo.value = user.cargo;
+      editUserForm.editUserDataCriacao.value = user.data_criacao || '';
+
+      editUserModal.style.display = 'block';
+    }
+  });
+
+  editUserForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const id = editUserForm.editUserId.value;
+    const index = usuarios.findIndex(u => u.id == id);
+    if (index > -1) {
+      usuarios[index] = {
+        ...usuarios[index],
+        nome: editUserForm.editUserName.value,
+        email: editUserForm.editUserEmail.value,
+        cargo: editUserForm.editUserCargo.value
+      };
+      renderizarUsuarios();
+      editUserModal.style.display = 'none';
+    }
+  });
+
+  // Fecha o modal ao clicar no botão X
+  closeBtn.addEventListener('click', () => {
+    editUserModal.style.display = 'none';
+  });
+
+  // Fecha o modal ao clicar fora da área do modal
+  window.addEventListener('click', e => {
+    if (e.target === editUserModal) {
+      editUserModal.style.display = 'none';
+    }
+  });
+
+  // Dropdown do menu
+  const menuButton = document.getElementById('menuButton');
+  const dropdownMenu = document.getElementById('dropdownMenu');
+
+  menuButton.addEventListener('click', e => {
+    e.stopPropagation();
+    dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+  });
+
+  document.addEventListener('click', () => {
+    dropdownMenu.style.display = 'none';
+  });
+
+  /* ------------ NOVO USUARIO ------------ */
+
+  const newUserModal = document.getElementById('newUserModal');
+  const btnNewUser = document.getElementById('btnNewUser');
+  const closeNewUserModal = document.getElementById('closeNewUserModal');
+  const newUserForm = document.getElementById('newUserForm');
+
+  btnNewUser.addEventListener('click', () => {
+    newUserModal.style.display = 'block';
+  });
+
+  closeNewUserModal.addEventListener('click', () => {
+    newUserModal.style.display = 'none';
+  });
+
+  window.addEventListener('click', e => {
+    if (e.target === newUserModal) {
+      newUserModal.style.display = 'none';
+    }
+  });
+
+  // Criar novo usuário
+  newUserForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const novoUsuario = {
+      login: newUserForm.newUserLogin.value,
+      nome: newUserForm.newUserName.value,
+      email: newUserForm.newUserEmail.value,
+      cargo: newUserForm.newUserCargo.value
+    };
+
+    try {
+      const response = await fetch('/api/usuarios', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(novoUsuario)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert('Erro ao criar usuário: ' + errorData.error);
+        return;
+      }
+
+      const data = await response.json();
+      alert('Usuário criado com sucesso! ID: ' + data.id);
+
+      // Atualiza a lista de usuários após criar
+      await carregarUsuarios(); // função que chama GET /api/usuarios e atualiza a tabela
+      newUserModal.style.display = 'none';
+      newUserForm.reset();
+
+    } catch (err) {
+      console.error(err);
+      alert('Erro de conexão ao criar usuário.');
+    }
+  });
+
+
+
+  window.addEventListener('DOMContentLoaded', carregarUsuarios);
+  </script>
+</body>
+</html>

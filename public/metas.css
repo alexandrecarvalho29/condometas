@@ -1,0 +1,1228 @@
+/* ==========================
+   RESET E BASE
+========================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: #fffaf5;
+  color: #1f2937;
+  line-height: 1.5;
+}
+
+/* ==========================
+   HEADER
+========================== */
+header.header {
+  background: linear-gradient(135deg, #e6752a 0%, #e05414 100%);
+  color: #fff;
+  padding: 5px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative; /* necessário para posicionar dropdown */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+header .left-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+header .titulo {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 5px 10px;
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  font-size: 0.95rem;
+}
+
+/* ==========================
+   BOTÃO HAMBÚRGUER
+========================== */
+#menuButton {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* espaço entre hambúrguer e texto */
+  padding: 10px 10px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(6px);
+  font-weight: 600;
+  color: #fff;
+}
+
+#menuButton:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+#menuButton .hamburguer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+#menuButton .hamburguer span {
+  display: block;
+  width: 25px;
+  height: 3px;
+  background: #fff;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+#menuButton .menu-text {
+  font-size: 0.95rem;
+}
+
+/* ==========================
+   DROPDOWN MENU
+========================== */
+#dropdownMenu {
+  position: absolute;
+  top: 60px;
+  left: 10px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: none;
+  min-width: 150px;
+  z-index: 100;
+}
+
+#dropdownMenu a {
+  display: block;
+  padding: 10px 15px;
+  color: #333;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+#dropdownMenu a:hover {
+  background: #f0f0f0;
+}
+
+/* ==========================
+   CONTAINER PRINCIPAL
+========================== */
+.container {
+  max-width: 1800px;
+  margin: 15px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 10px 15px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+/* ==========================
+   TÍTULO
+========================== */
+h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+  color: #1e293b;
+}
+
+h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* ==========================
+   STATUS SECTION
+========================== */
+#status-section {
+  display: grid;
+  grid-template-columns: 5fr;
+  gap: 20px;
+  margin-bottom: 2rem;
+  align-items: flex-start;
+}
+
+#statusCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.status-card {
+  position: relative;
+  padding: 10px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.25s ease;
+}
+
+.status-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.status-card span:first-child {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #475569;
+  font-weight: 600;
+}
+
+.status-card span:last-child {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+/* Cores dos cards */
+.bg-blue { background-color: #dbeafe; color: #1d4ed8; }
+.bg-green { background-color: #dcfce7; color: #047857; }
+.bg-red { background-color: #fee2e2; color: #b91c1c; }
+.bg-yellow { background-color: #fef9c3; color: #ca8a04; }
+.bg-gray { background-color: #e5e7eb; color: #1f2937; }
+
+/* ==========================
+   MINI TABELA HOVER (Porcentagem)
+========================== */
+.porcentagem-card { position: relative; }
+
+.mini-tabela {
+  display: none;
+  opacity: 0;
+  position: absolute;
+  top: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  padding: 6px;
+  z-index: 10;
+
+  width: 160px;        /* ajuste conforme quiser */
+  max-height: 160px;
+  overflow-y: auto;
+  overflow-x: hidden;  /* evita scroll horizontal */
+  transition: opacity .2s;
+}
+
+.porcentagem-card:hover .mini-tabela {
+  display: block;
+  opacity: 1;
+}
+
+/* força a tabela a usar o espaço do container */
+.mini-tabela table {
+  width: 100%;
+  table-layout: fixed;   /* essencial para controlar colunas */
+  border-collapse: collapse;
+  box-sizing: border-box;
+}
+
+/* garante que padding/borders não aumentem a largura total */
+.mini-tabela th,
+.mini-tabela td {
+  box-sizing: border-box;
+  padding: 4px 6px;
+  font-size: 0.72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* COLUNA 1: permite quebrar linha para não empurrar o layout */
+.mini-tabela th:nth-child(1),
+.mini-tabela td:nth-child(1) {
+  width: 60%;
+  min-width: 70px;          /* evita sumir em telas muito pequenas */
+  white-space: normal;      /* permite quebra de linha */
+  word-break: break-word;   /* quebra palavras longas se precisar */
+}
+
+/* COLUNA 2: pequena e fixa (percentual) */
+.mini-tabela th:nth-child(2),
+.mini-tabela td:nth-child(2) {
+  width: 40%;
+  min-width: 40px;
+  white-space: nowrap;
+  text-align: right;
+  padding-left: 6px;
+}
+
+/* barra de rolagem discreta */
+.mini-tabela::-webkit-scrollbar { width: 6px; }
+.mini-tabela::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+/* ==========================
+   FILTROS
+========================== */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 180px;
+}
+
+label {
+  font-size: 0.85rem;
+  color: #374151;
+  font-weight: 700;
+}
+
+/* INPUTS TEXT */
+input[type="text"] {
+  padding: 6px;
+  border: 1px solid #d1d5db;
+  width: 200px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+/* INPUTS DATE */
+input[type="date"] {
+  padding: 6px;
+  border: 1px solid #d1d5db;
+  width: 120px; /* largura menor só para date */
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+/* SELECT */
+select {
+  padding: 6px;
+  border: 1px solid #d1d5db;
+  width: 200px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+/* FOCUS */
+input:focus, select:focus {
+  outline: none;
+  border-color: #e05414;
+  box-shadow: 0 0 0 2px rgba(126, 50, 6, 0.25);
+}
+
+/* ==========================
+   BOTÕES TOPO METAS
+========================== */
+#top-metas {
+  background:#e7e7e7;
+  color: #000000;
+  padding: 5px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative; /* necessário para posicionar dropdown */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+#botoes-top-metas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Botões principais (classe1) */
+#botoes-top-metas .botao-classe1 {
+  background-color: #e2672d;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+#botoes-top-metas .botao-classe1:hover {
+  background-color: #c45520;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+#botoes-top-metas .botao-classe1:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Botão secundário (classe2) */
+#botoes-top-metas .botao-classe2 {
+  background-color: #fff;
+  color: #e2672d;
+  border: 2px solid #e2672d;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+#botoes-top-metas .botao-classe2:hover {
+  background-color: #e2672d;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+#botoes-top-metas .botao-classe2:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* INPUTS TEXT */
+#editForm input[type="text"] {
+  padding: 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  width: auto !important;
+}
+
+/* INPUTS DATE */
+#editForm input[type="date"] {
+  padding: 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  width: auto !important;
+}
+
+/* SELECT */
+#editForm select {
+  padding: 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+/* FOCUS */
+#editForm input:focus,
+#editForm select:focus {
+  outline: none;
+  border-color: #e05414;
+  box-shadow: 0 0 0 2px rgba(126, 50, 6, 0.25);
+}
+
+#top-metas {
+  background:#e7e7e7;
+  color: #000000;
+  padding: 5px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative; /* necessário para posicionar dropdown */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+#botoes-top-metas {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 5px;
+}
+
+#botao-classe1,
+#botao-classe2 {
+  width: 140px;
+  height: 42px;
+  border: 1px solid rgba(0, 0, 0, 0.2); /* borda fraca, 20% opacidade */
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.25s ease-in-out;
+}
+
+/* Botão cinza neutro */
+#botao-classe1 {
+  color: #333;
+  background: linear-gradient(145deg, #ffffff, #fafafa);
+  box-shadow: 3px 3px 6px #cccccc, 3px 3px 6px #ffffff;
+}
+
+#botao-classe1:hover {
+  background: linear-gradient(145deg, #e8e8e8, #f8f8f8);
+  transform: translateY(-2px);
+}
+
+#botao-classe1:active {
+  background: linear-gradient(145deg, #dcdcdc, #f0f0f0);
+  box-shadow: inset 2px 2px 4px #bebebe, inset -2px -2px 4px #ffffff;
+}
+
+/* Botão laranja */
+#botao-classe2 {
+  color: #fff;
+  background: linear-gradient(145deg, #ff7b27, #e85a0e);
+  box-shadow: 3px 3px 6px #ffffff, 3px 3px 6px #f3f3f3;
+}
+
+#botao-classe2:hover {
+  background: linear-gradient(145deg, #ff8f3d, #f06b1d);
+  transform: translateY(-2px);
+}
+
+#botao-classe2:active {
+  background: linear-gradient(145deg, #e26318, #ff7b27);
+  box-shadow: inset 2px 2px 4px #b94907, inset -2px -2px 4px #ff9952;
+  transform: translateY(0);
+}
+
+/* ==========================
+   TABELA PRINCIPAL
+========================== */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+  background: #fff;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+thead {
+  background: #e2672d;
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+thead th {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #000;
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: 4px 10px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #334155;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+tbody tr:hover {
+  background-color: #f1f5ff;
+  transition: background 0.25s;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #fff6f0; /* cor das linhas pares */
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #ffffff; /* cor das linhas ímpares */
+}
+
+/* ==========================
+   BADGES DE STATUS
+========================== */
+.badge {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.status-Pendente {
+  background-color: #fef9c3;
+  color: #854d0e;
+}
+
+.status-Atrasado {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.status-Concluido,
+.status-No\\ prazo {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+/* ==========================
+   PAGINAÇÃO
+========================== */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+#prevPage, #nextPage {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  background-color: #fff;
+  color: #374151;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#prevPage:hover, #nextPage:hover {
+  background-color: #f8fafc;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+#prevPage:disabled, #nextPage:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#pageInfo {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+/* ==========================
+   SCROLL E RESPONSIVIDADE
+========================== */
+::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #4f46e5;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #e5e7eb;
+}
+
+@media (max-width: 1024px) {
+  #status-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+
+  .status-card {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem;
+  }
+
+  thead th, tbody td {
+    padding: 0.75rem;
+  }
+}
+
+/* ==========================
+   BADGES DE STATUS (CORREÇÃO E AJUSTE)
+========================== */
+/* Note que 'No prazo' no JS tem um espaço, mas a classe no CSS deve ser 'no-prazo' */
+.badge-Pendente { /* Mudei para usar 'badge-Pendente' para consistência, se o JS for ajustado */
+    background-color: #fef9c3;
+    color: #854d0e;
+}
+
+.badge-Atrasado {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.badge-No-prazo, /* Classe correta para o JS getStatusBadge, se o JS for ajustado */
+.badge-no-prazo {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.badge-Concluido {
+    background-color: #bfdbfe; /* Cor diferente para Concluído */
+    color: #1d4ed8;
+}
+
+/* Para o JS funcionar com a função getStatusBadge, você deve usar a classe com o prefixo 'badge-' */
+.badge-pendente { background-color: #fef9c3; color: #854d0e; }
+.badge-atrasado { background-color: #fee2e2; color: #b91c1c; }
+.badge-no-prazo { background-color: #dcfce7; color: #166534; }
+.badge-concluido { background-color: #bfdbfe; color: #1d4ed8; }
+
+
+/* ==========================
+   BOTÃO DE EDIÇÃO NA TABELA
+========================== */
+.edit-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    background-color: #ffe2d7; /* Laranja claro */
+    color: white;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.edit-btn:hover {
+    background-color: #1e40af; /* Azul mais escuro no hover */
+}
+
+/* ==========================
+   MODAL BASE
+========================== */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 3% auto;
+  padding: 30px 35px;
+  border-radius: 14px;
+  width: 90%;
+  max-width: 780px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  animation: slideIn 0.3s ease-out;
+  position: relative;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.close-btn:hover { color: #1f2937; }
+
+.modal-content h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #1e293b;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+/* ==========================
+   SEÇÃO INFORMATIVA (TOPO)
+========================== */
+.info-header {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* duas colunas */
+  gap: 1px;
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1rem;
+  color: #111827;
+  /* background: #f9fafb; */
+  border-radius: 8px;
+  padding: 5px;
+  /* box-shadow: 0 1px 3px rgba(0,0,0,0.05); */
+  /* margin-bottom: 0.5rem; */
+}
+
+.info-label {
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.info-value {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+/* ==========================
+   FORMULÁRIO EDITÁVEL
+========================== */
+#editForm {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  margin-top: 20px;
+  gap: 18px 30px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group select {
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  outline: none;
+}
+
+input[readonly] {
+  background-color: #fef3c7;
+  color: #92400e;
+  cursor: not-allowed;
+}
+
+/* ==========================
+   CHECKBOXES ESTILIZADOS
+========================== */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background-color: #f9fafb;
+  transition: all 0.25s ease;
+}
+
+.checkbox-group:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  user-select: none;
+  width: 100%;
+}
+
+/* Checkbox customizado */
+.checkbox-group input[type="checkbox"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 6px;
+  position: relative;
+  transition: all 0.2s ease;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"]:checked {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+.checkbox-group input[type="checkbox"]:checked::after {
+  content: "✔";
+  position: absolute;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: bold;
+  top: 1px;
+  left: 4px;
+}
+
+.checkbox-group input[type="checkbox"]:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.4);
+  outline-offset: 2px;
+}
+
+/* ==========================
+   COMENTÁRIOS
+========================== */
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group textarea {
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  resize: vertical; /* permite o usuário ajustar a altura */
+  min-height: 80px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  outline: none;
+}
+
+.form-group textarea::placeholder {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+
+/* ==========================
+   BOTÕES
+========================== */
+.button-group {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  margin-top: 25px;
+}
+
+#salvar {
+  background-color: #2563eb;
+  color: #fff;
+  padding: 0.8rem 1.6rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+#salvar:hover {
+  background-color: #1e40af;
+  transform: translateY(-1px);
+}
+
+/* ==========================
+   RESPONSIVIDADE
+========================== */
+@media (max-width: 720px) {
+  .meta-infos, #editForm {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ========== MODAL EDIÇÃO EM MASSA ========== */
+#modalEditarMassa {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+#modalEditarMassa .modal-content {
+  background: #fff;
+  padding: 24px;
+  border-radius: 10px;
+  width: 380px;
+  max-width: 90%;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  position: relative;
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+#modalEditarMassa .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  cursor: pointer;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #555;
+}
+
+#modalEditarMassa h2 {
+  margin-bottom: 16px;
+  color: #333;
+  font-size: 1.3rem;
+}
+
+/* ⚠️ Caixa de aviso */
+.alert-warning {
+  background-color: #fff4e5;
+  border: 1px solid #f0c36d;
+  color: #b45309;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+/* Campos de formulário */
+#modalEditarMassa .form-group {
+  margin-bottom: 14px;
+}
+
+#modalEditarMassa label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+#modalEditarMassa input,
+#modalEditarMassa select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#modalEditarMassa input:focus,
+#modalEditarMassa select:focus {
+  outline: none;
+  border-color: #e2672d;
+  box-shadow: 0 0 0 2px rgba(226, 103, 45, 0.25);
+}
+
+/* Botões */
+#modalEditarMassa .button-group {
+  text-align: right;
+  margin-top: 20px;
+}
+
+#modalEditarMassa .button-group button {
+  padding: 8px 14px;
+  background-color: #e2672d;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+#modalEditarMassa .button-group button:hover {
+  background-color: #d15520;
+  transform: translateY(-1px);
+}
+
+/* ========== MODAL NOVO CONDOMÍNIO ========== */
+#modalNovoCondominio .modal-content {
+  width: 100%;
+  max-width: 1300px;
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+  position: relative;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+#nomeCondominio {
+  width: 450px;
+}
+
+#modalNovoCondominio h2 {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+#modalNovoCondominio h3 {
+  margin: 18px 0 12px;
+  font-size: 1.2rem;
+  color: #444;
+}
+
+/* ================= LINHAS DE METAS ================= */
+.meta-linha {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+/* Cada coluna com label + campo */
+.meta-linha .coluna {
+  display: flex;
+  flex-direction: column; /* label acima do campo */
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Labels */
+.meta-linha .coluna label {
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+/* Campos select e input */
+.meta-linha .coluna select,
+.meta-linha .coluna input[type="date"] {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: #fafafa;
+}
+
+/* Botão remover linha */
+.meta-linha .remover-linha {
+  background: #f87171;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  align-self: flex-end;
+  flex-shrink: 0;
+}
+
+.meta-linha .remover-linha:hover {
+  background: #dc2626;
+}
+
+/* Botão adicionar nova linha */
+#modalNovoCondominio .botao-classe2 {
+  margin-top: 12px;
+  padding: 8px 14px;
+  background: #e2672d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+#modalNovoCondominio .botao-classe2:hover {
+  background: #d15520;
+}
+
+/* Botão salvar */
+#modalNovoCondominio .button-group button {
+  padding: 8px 16px;
+  background-color: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 15px;
+}
+
+#modalNovoCondominio .button-group button:hover {
+  background-color: #15803d;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .meta-linha {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .meta-linha .coluna {
+    min-width: 100%;
+  }
+
+  .meta-linha .remover-linha {
+    align-self: flex-end;
+  }
+}
