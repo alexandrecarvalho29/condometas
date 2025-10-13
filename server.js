@@ -409,19 +409,23 @@ const transporter = nodemailer.createTransport({
 // =======================
 // Solicitar redefinição de senha
 // =======================
+// Solicitar redefinição de senha
 app.post('/api/solicitar-redefinicao', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email é obrigatório' });
 
   try {
-    const usuarios = await lerAba('usuarios', 'usuarios!A:I'); // H = coluna tokenRedefinicao
-    const user = usuarios.find(u => u.email === email);
-    if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
+    const usuarios = await lerAba('usuarios', 'usuarios!A:I');
+    const linha = usuarios.findIndex(u => u.email === email);
+    if (linha === -1) return res.status(404).json({ error: 'Usuário não encontrado' });
+
+    const linhaPlanilha = linha + 2; // +1 header +1 1-indexed
+    const user = usuarios[linha];
 
     const token = uuidv4();
-    const validade = Date.now() + 2 * 60 * 60 * 1000; // 2 horas
+    const validade = Date.now() + 2 * 60 * 60 * 1000; // 2h
 
-    // salvar token e validade na planilha
+    // Atualizar token e validade na planilha
     await sheets.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
       range: `usuarios!H${linhaPlanilha}:I${linhaPlanilha}`,
@@ -429,9 +433,10 @@ app.post('/api/solicitar-redefinicao', async (req, res) => {
       requestBody: { values: [[token, validade]] }
     });
 
-    const link = `https://seusite.com/redefinir-senha.html?token=${token}`;
+    const link = `https://condometas.onrender.com/redefinir-senha.html?token=${token}`;
+
     await transporter.sendMail({
-      from: '"Sistema Condometas" <seuemail@gmail.com>',
+      from: `"Sistema Condometas" <${process.env.GMAIL_NAME}>`,
       to: email,
       subject: 'Redefinição de Senha',
       html: `<p>Clique no link abaixo para redefinir sua senha:</p>
@@ -447,17 +452,22 @@ app.post('/api/solicitar-redefinicao', async (req, res) => {
   }
 });
 
+
 // =======================
 // Redefinir senha
 // =======================
+// Redefinir senha
 app.post('/api/redefinir-senha', async (req, res) => {
   const { token, novaSenha } = req.body;
   if (!token || !novaSenha) return res.status(400).json({ error: 'Token e nova senha são obrigatórios' });
 
   try {
     const usuarios = await lerAba('usuarios', 'usuarios!A:I');
-    const user = usuarios.find(u => u.tokenRedefinicao === token);
-    if (!user) return res.status(400).json({ error: 'Token inválido' });
+    const linha = usuarios.findIndex(u => u.tokenRedefinicao === token);
+    if (linha === -1) return res.status(400).json({ error: 'Token inválido' });
+
+    const linhaPlanilha = linha + 2;
+    const user = usuarios[linha];
 
     if (Date.now() > Number(user.tokenValidade)) return res.status(400).json({ error: 'Token expirado' });
 
@@ -465,7 +475,7 @@ app.post('/api/redefinir-senha', async (req, res) => {
 
     await sheets.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
-      range: `usuarios!G${linhaPlanilha}:I${linhaPlanilha}`,
+      range: `usuarios!G${linhaPlanilha}:I${linhaPlanilha}`, // senhaHash, token, validade
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [[hash, '', '']] }
     });
@@ -477,6 +487,7 @@ app.post('/api/redefinir-senha', async (req, res) => {
     res.status(500).json({ error: 'Erro ao redefinir senha' });
   }
 });
+
 
 // Inicialização do servidor
 const PORT = process.env.PORT || 3000;
