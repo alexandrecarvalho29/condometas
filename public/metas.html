@@ -416,6 +416,11 @@
 </div>
 
   <script>
+  const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = 'login.html'; // redireciona se não estiver logado
+    }
+
   let metas = [];
   let metasFiltradasGlobais = [];
   let paginaAtual = 1;
@@ -435,11 +440,19 @@
   }
 
   async function carregarMetas() {
+    const token = localStorage.getItem('token');
+    if (!token) return window.location.href = 'login.html';
+
     try {
-      const res = await fetch('/api/metas');
+      const res = await fetch('/api/metas', { 
+        headers: { 'Authorization': `Bearer ${token}` } 
+      });
       metas = res.ok ? await res.json() : [];
+      if (res.status === 401) throw new Error('Sessão expirada');
     } catch (err) {
-      console.error('Erro ao carregar metas:', err);
+      console.error(err);
+      localStorage.removeItem('token');
+      window.location.href = 'login.html';
     } finally {
       renderizarTabela();
     }
@@ -729,7 +742,10 @@ editForm.addEventListener('submit', async e => {
   try {
     const response = await fetch(`/api/metas/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+       },
       body: JSON.stringify(dadosAtualizados)
     });
 
@@ -755,7 +771,9 @@ editForm.addEventListener('submit', async e => {
 
 async function carregarFiltros() {
   try {
-    const res = await fetch('/api/dados');
+    const res = await fetch('/api/dados', {
+      headers: { 'Authorization': `Bearer ${token}` } // adiciona token
+    });
     if (!res.ok) throw new Error('Erro ao carregar dados da API');
     const dados = await res.json();
 
@@ -847,7 +865,11 @@ window.addEventListener('click', (e) => {
 let opcoesPorColuna = {};
 async function carregarOpcoes() {
   try {
-    const res = await fetch('/api/dados');
+    const res = await fetch('/api/dados', {
+      headers: {
+        'Authorization': `Bearer ${token}` // envia o token
+      }
+    });
     const dados = await res.json();
 
     opcoesPorColuna = {
@@ -950,7 +972,10 @@ document.getElementById('salvarEdicaoMassa').addEventListener('click', async () 
   try {
     const res = await fetch('/api/metasAtualizarPorIds', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
       body: JSON.stringify({ ids, coluna, valor })
     });
 
@@ -968,7 +993,9 @@ document.getElementById('salvarEdicaoMassa').addEventListener('click', async () 
 
 async function carregarOpcoes() {
   try {
-    const res = await fetch('/api/dados');
+    const res = await fetch('/api/dados', {
+      headers: { 'Authorization': `Bearer ${token}` } // adiciona token
+    });
     const dados = await res.json();
 
     return {
@@ -1135,7 +1162,10 @@ document.getElementById("formNovoCondominio").addEventListener("submit", async (
   try {
     const res = await fetch("/api/novoCondominio", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${token}`
+     },
       body: JSON.stringify({ nomeCondominio: nome, metas })
     });
 

@@ -121,11 +121,19 @@
   </main>
 
   <script>
+
+const token = localStorage.getItem('token');
+if (!token) {
+  window.location.href = 'login.html'; // redireciona se não estiver logado
+}
+
   let usuarios = [];
 
   async function carregarUsuarios() {
     try {
-      const res = await fetch('/api/usuarios');
+      const res = await fetch('/api/usuarios',{
+      headers: { 'Authorization': `Bearer ${token}` } // adiciona token
+    });
       usuarios = res.ok ? await res.json() : [];
       renderizarUsuarios();
     } catch (err) {
@@ -246,7 +254,8 @@
       const response = await fetch('/api/usuarios', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(novoUsuario)
       });

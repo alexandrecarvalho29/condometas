@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const { google } = require('googleapis');
 const path = require('path');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 const app = express();
 
@@ -30,6 +32,21 @@ const auth = new google.auth.GoogleAuth({
 });
 
 const sheets = google.sheets({ version: 'v4', auth });
+
+// Middleware para autenticar JWT
+function autenticar(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) return res.status(401).json({ error: 'Token não fornecido' });
+
+  const token = authHeader.split(' ')[1]; // Bearer <token>
+  if (!token) return res.status(401).json({ error: 'Token inválido' });
+
+  jwt.verify(token, 'SEGREDO_SUPERSECRETO', (err, decoded) => {
+    if (err) return res.status(401).json({ error: 'Token expirado ou inválido' });
+    req.user = decoded; // dados do usuário disponíveis em req.user
+    next();
+  });
+}
 
 /**
  * Ler aba do Google Sheets e transformar em array de objetos
@@ -59,7 +76,7 @@ async function lerAba(sheetName, range) {
 /**
  * Metas filtrando ult_tres_meses = 1 e retornando até N
  */
-app.get('/api/metas', async (req, res) => {
+app.get('/api/metas', autenticar, async (req, res) => {
   try {
     // Lê toda a aba, até P, para manter as fórmulas intactas
     const metas = await lerAba('metas', 'metas!A:P'); 
@@ -86,7 +103,7 @@ app.get('/api/metas', async (req, res) => {
  * Atualizar uma meta
  * Só permite edição de A:L
  */
-app.put('/api/metas/:id', async (req, res) => {
+app.put('/api/metas/:id', autenticar, async (req, res) => {
   const { id } = req.params;
   const dadosAtualizados = req.body;
 
@@ -129,7 +146,7 @@ app.put('/api/metas/:id', async (req, res) => {
 /**
  * Usuários
  */
-app.get('/api/usuarios', async (req, res) => {
+app.get('/api/usuarios', autenticar, async (req, res) => {
   try {
     const usuarios = await lerAba('usuarios', 'usuarios!A:F');
     res.json(usuarios);
@@ -142,7 +159,7 @@ app.get('/api/usuarios', async (req, res) => {
 /**
  * Criar novo usuário (A:F)
  */
-app.post('/api/usuarios', async (req, res) => {
+app.post('/api/usuarios', autenticar, async (req, res) => {
   const { login, nome, email, cargo } = req.body;
 
   if (!login || !nome || !email || !cargo) {
@@ -186,7 +203,7 @@ app.post('/api/usuarios', async (req, res) => {
 /**
  * Dados - retornar valores únicos de cada coluna
  */
-app.get('/api/dados', async (req, res) => {
+app.get('/api/dados', autenticar, async (req, res) => {
   try {
     const dados = await lerAba('dados', 'dados!A:H'); // A:H cobre todas as colunas
 
@@ -207,7 +224,7 @@ app.get('/api/dados', async (req, res) => {
 /**
  * Metas filtrando por mes_apuracao
  */
-app.get('/api/metasCompleta', async (req, res) => {
+app.get('/api/metasCompleta', autenticar, async (req, res) => {
   try {
     const { mes_apuracao } = req.query;
     if (!mes_apuracao) {
@@ -230,7 +247,7 @@ app.get('/api/metasCompleta', async (req, res) => {
 /**
  * Atualiza várias metas pelo ID
  */
-app.put('/api/metasAtualizarPorIds', async (req, res) => {
+app.put('/api/metasAtualizarPorIds', autenticar, async (req, res) => {
   const { ids = [], coluna, valor } = req.body;
 
   if (!coluna || !ids.length) {
@@ -290,7 +307,7 @@ app.put('/api/metasAtualizarPorIds', async (req, res) => {
  * Criar novas metas (A:P)
  * formulas: array de fórmulas para as colunas extras (I:P)
  */
-app.post('/api/novoCondominio', async (req, res) => {
+app.post('/api/novoCondominio', autenticar, async (req, res) => {
   const { nomeCondominio, metas, formulas = [] } = req.body;
 
   if (!nomeCondominio || !Array.isArray(metas) || metas.length === 0) {
@@ -357,15 +374,36 @@ app.post('/api/novoCondominio', async (req, res) => {
   }
 });
 
+// rota de login ----------------------------
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const usuarios = await lerAba('usuarios', 'usuarios!A:G'); // sua planilha
+    const user = usuarios.find(u => u.email === email);
+    if (!user) return res.status(401).json({ error: 'Usuário não encontrado' });
+
+    const senhaValida = await bcrypt.compare(password, user.senhaHash);
+    if (!senhaValida) return res.status(401).json({ error: 'Senha inválida' });
+
+    const token = jwt.sign({ id: user.id, email: user.email, login: user.login }, 'SEGREDO_SUPERSECRETO', { expiresIn: '2h' });
+    res.json({ token });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro no login' });
+  }
+});
+
 // Inicialização do servidor
 const PORT = process.env.PORT || 3000;
 
 // Servir arquivos HTML, CSS e JS da pasta 'public'
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Rota padrão para abrir index.html
+// Rota padrão para abrir login.html
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'metas.html'));
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 app.listen(PORT, () => {
