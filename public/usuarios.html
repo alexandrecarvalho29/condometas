@@ -125,7 +125,7 @@
 
   async function carregarUsuarios() {
     try {
-      const res = await fetch('http://localhost:3000/api/usuarios');
+      const res = await fetch('/api/usuarios');
       usuarios = res.ok ? await res.json() : [];
       renderizarUsuarios();
     } catch (err) {

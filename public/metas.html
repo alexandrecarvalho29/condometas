@@ -436,7 +436,7 @@
 
   async function carregarMetas() {
     try {
-      const res = await fetch('http://localhost:3000/api/metas');
+      const res = await fetch('/api/metas');
       metas = res.ok ? await res.json() : [];
     } catch (err) {
       console.error('Erro ao carregar metas:', err);
@@ -755,7 +755,7 @@ editForm.addEventListener('submit', async e => {
 
 async function carregarFiltros() {
   try {
-    const res = await fetch('http://localhost:3000/api/dados');
+    const res = await fetch('/api/dados');
     if (!res.ok) throw new Error('Erro ao carregar dados da API');
     const dados = await res.json();
 
@@ -847,7 +847,7 @@ window.addEventListener('click', (e) => {
 let opcoesPorColuna = {};
 async function carregarOpcoes() {
   try {
-    const res = await fetch('http://localhost:3000/api/dados');
+    const res = await fetch('/api/dados');
     const dados = await res.json();
 
     opcoesPorColuna = {
@@ -968,7 +968,7 @@ document.getElementById('salvarEdicaoMassa').addEventListener('click', async () 
 
 async function carregarOpcoes() {
   try {
-    const res = await fetch('http://localhost:3000/api/dados');
+    const res = await fetch('/api/dados');
     const dados = await res.json();
 
     return {
@@ -1133,7 +1133,7 @@ document.getElementById("formNovoCondominio").addEventListener("submit", async (
   }
 
   try {
-    const res = await fetch("http://localhost:3000/api/novoCondominio", {
+    const res = await fetch("/api/novoCondominio", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nomeCondominio: nome, metas })
