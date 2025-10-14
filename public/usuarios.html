@@ -5,33 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Condometas - Usuários</title>
   <link rel="stylesheet" href="usuarios.css">
+  <style>
+    .reset-password-btn { 
+      margin-top: 10px; 
+      background: #e05414; 
+      color: white; 
+      padding: 0.5rem 1rem; 
+      border: none; 
+      border-radius: 0.5rem; 
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <header class="header">
-    <div class="left-group">
-      <div class="titulo">Condometas</div>
-      <button id="menuButton">
-        <div class="hamburguer">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-        <span class="menu-text">MENU</span>
-      </button>      
-    </div>
+<header class="header">
+  <div class="left-group">
+    <div class="titulo">Condometas</div>
+    <button id="menuButton">
+      <div class="hamburguer">
+        <span></span><span></span><span></span>
+      </div>
+      <span class="menu-text">MENU</span>
+    </button>      
+  </div>
 
-    <div id="dropdownMenu">
-      <a href="metas.html">Metas</a>
-      <a href="usuarios.html">Usuários</a>
-      <a href="relatorio.html">Relatórios</a>
-    </div>
-  </header>
+  <div id="dropdownMenu">
+    <a href="metas.html">Metas</a>
+    <a href="usuarios.html">Usuários</a>
+    <a href="relatorio.html">Relatórios</a>
+  </div>
+</header>
 
-  <main class="container">
-    <h1>Usuários</h1>
+<main class="container">
+  <h1>Usuários</h1>
 
-    <!-- Tabela de Usuários -->
-     <button id="btnNewUser" class="edit-user-btn" style="margin-bottom: 15px;">Novo Usuário</button>
+  <button id="btnNewUser" class="edit-user-btn" style="margin-bottom: 15px;">Novo Usuário</button>
   <section class="table-wrapper">
     <table>
       <thead>
@@ -81,16 +89,18 @@
           <label>Data Criação</label>
           <input type="date" id="editUserDataCriacao" name="editUserDataCriacao" readonly style="background: #f0f0f0;">
         </div>
+        <!-- Botão para coordenador redefinir senha de outro usuário -->
+        <button type="button" id="btnRedefinirSenhaPadrao" class="reset-password-btn">Redefinir senha para padrão</button>
         <button type="submit">Salvar Alterações</button>
       </form>
     </div>
   </div>
 
-  <!-- Modal de Novo Usuário -->
+  <!-- Modal de Novo Usuário / redefinir própria senha -->
   <div id="newUserModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" id="closeNewUserModal">&times;</span>
-      <h2>Novo Usuário</h2>
+      <h2>Novo Usuário / Redefinir Minha Senha</h2>
       <form id="newUserForm">
         <div class="form-group">
           <label>Login</label>
@@ -113,176 +123,168 @@
             <option value="analista">Analista</option>
           </select>
         </div>
+        <div class="form-group">
+          <label>Nova Senha (para redefinir sua própria senha)</label>
+          <input type="password" id="novaSenhaUsuario" name="novaSenhaUsuario">
+        </div>
         <button type="submit">Criar Usuário</button>
+        <button type="button" id="btnRedefinirMinhaSenha" class="reset-password-btn">Redefinir Minha Senha</button>
       </form>
     </div>
   </div>
+</main>
 
-  </main>
-
-  <script>
-
+<script>
 const token = localStorage.getItem('token');
-if (!token) {
-  window.location.href = 'login.html'; // redireciona se não estiver logado
+if (!token) window.location.href = 'login.html';
+
+let usuarios = [];
+
+// Função para carregar usuários
+async function carregarUsuarios() {
+  try {
+    const res = await fetch('/api/usuarios', { headers: { 'Authorization': `Bearer ${token}` } });
+    usuarios = res.ok ? await res.json() : [];
+    renderizarUsuarios();
+  } catch (err) { console.error('Erro ao carregar usuários:', err); }
 }
 
-  let usuarios = [];
+function renderizarUsuarios() {
+  const tabela = document.getElementById('usuariosTable');
+  tabela.innerHTML = usuarios.map(u => `
+    <tr>
+      <td><button class="edit-user-btn" data-id="${u.id}">Editar</button></td>
+      <td>${u.id}</td>
+      <td>${u.login}</td>
+      <td>${u.nome}</td>
+      <td>${u.email}</td>
+      <td>${u.cargo}</td>
+      <td>${u.data_criacao}</td>
+    </tr>
+  `).join('');
+}
 
-  async function carregarUsuarios() {
-    try {
-      const res = await fetch('/api/usuarios',{
-      headers: { 'Authorization': `Bearer ${token}` } // adiciona token
-    });
-      usuarios = res.ok ? await res.json() : [];
-      renderizarUsuarios();
-    } catch (err) {
-      console.error('Erro ao carregar usuários:', err);
-    }
+// Modal de edição
+const editUserModal = document.getElementById('editUserModal');
+const editUserForm = document.getElementById('editUserForm');
+const closeBtn = editUserModal.querySelector('.close-btn');
+const btnRedefinirSenhaPadrao = document.getElementById('btnRedefinirSenhaPadrao');
+
+// Modal de novo usuário / redefinir senha própria
+const newUserModal = document.getElementById('newUserModal');
+const btnNewUser = document.getElementById('btnNewUser');
+const closeNewUserModal = document.getElementById('closeNewUserModal');
+const newUserForm = document.getElementById('newUserForm');
+const btnRedefinirMinhaSenha = document.getElementById('btnRedefinirMinhaSenha');
+const inputNovaSenha = document.getElementById('novaSenhaUsuario');
+
+// Pegar dados do usuário logado
+const usuarioLogado = JSON.parse(localStorage.getItem('usuario'));
+
+// Mostrar botão de redefinir padrão apenas para coordenador
+btnRedefinirSenhaPadrao.style.display = usuarioLogado?.cargo === 'coordenador' ? 'block' : 'none';
+
+// Editar usuário
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('edit-user-btn')) {
+    const id = e.target.dataset.id;
+    const user = usuarios.find(u => u.id == id);
+
+    editUserForm.editUserId.value = user.id;
+    editUserForm.editUserLogin.value = user.login;
+    editUserForm.editUserName.value = user.nome;
+    editUserForm.editUserEmail.value = user.email;
+    editUserForm.editUserCargo.value = user.cargo;
+    editUserForm.editUserDataCriacao.value = user.data_criacao || '';
+
+    editUserModal.style.display = 'block';
   }
+});
 
-  function renderizarUsuarios() {
-    const tabela = document.getElementById('usuariosTable');
-    tabela.innerHTML = usuarios.map(u => `
-      <tr>
-        <td><button class="edit-user-btn" data-id="${u.id}">Editar</button></td>
-        <td>${u.id}</td>
-        <td>${u.nome}</td>
-        <td>${u.login}</td>
-        <td>${u.email}</td>
-        <td>${u.cargo}</td>
-        <td>${u.data_criacao}</td>
-      </tr>
-    `).join('');
-  }
-
-  // Modal de edição
-  const editUserModal = document.getElementById('editUserModal');
-  const editUserForm = document.getElementById('editUserForm');
-  const closeBtn = editUserModal.querySelector('.close-btn');
-
-  document.addEventListener('click', e => {
-    if (e.target.classList.contains('edit-user-btn')) {
-      const id = e.target.dataset.id;
-      const user = usuarios.find(u => u.id == id);
-
-      editUserForm.editUserId.value = user.id;
-      editUserForm.editUserLogin.value = user.login;
-      editUserForm.editUserName.value = user.nome;
-      editUserForm.editUserEmail.value = user.email;
-      editUserForm.editUserCargo.value = user.cargo;
-      editUserForm.editUserDataCriacao.value = user.data_criacao || '';
-
-      editUserModal.style.display = 'block';
-    }
-  });
-
-  editUserForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const id = editUserForm.editUserId.value;
-    const index = usuarios.findIndex(u => u.id == id);
-    if (index > -1) {
-      usuarios[index] = {
-        ...usuarios[index],
-        nome: editUserForm.editUserName.value,
-        email: editUserForm.editUserEmail.value,
-        cargo: editUserForm.editUserCargo.value
-      };
-      renderizarUsuarios();
-      editUserModal.style.display = 'none';
-    }
-  });
-
-  // Fecha o modal ao clicar no botão X
-  closeBtn.addEventListener('click', () => {
-    editUserModal.style.display = 'none';
-  });
-
-  // Fecha o modal ao clicar fora da área do modal
-  window.addEventListener('click', e => {
-    if (e.target === editUserModal) {
-      editUserModal.style.display = 'none';
-    }
-  });
-
-  // Dropdown do menu
-  const menuButton = document.getElementById('menuButton');
-  const dropdownMenu = document.getElementById('dropdownMenu');
-
-  menuButton.addEventListener('click', e => {
-    e.stopPropagation();
-    dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
-  });
-
-  document.addEventListener('click', () => {
-    dropdownMenu.style.display = 'none';
-  });
-
-  /* ------------ NOVO USUARIO ------------ */
-
-  const newUserModal = document.getElementById('newUserModal');
-  const btnNewUser = document.getElementById('btnNewUser');
-  const closeNewUserModal = document.getElementById('closeNewUserModal');
-  const newUserForm = document.getElementById('newUserForm');
-
-  btnNewUser.addEventListener('click', () => {
-    newUserModal.style.display = 'block';
-  });
-
-  closeNewUserModal.addEventListener('click', () => {
-    newUserModal.style.display = 'none';
-  });
-
-  window.addEventListener('click', e => {
-    if (e.target === newUserModal) {
-      newUserModal.style.display = 'none';
-    }
-  });
-
-  // Criar novo usuário
-  newUserForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const novoUsuario = {
-      login: newUserForm.newUserLogin.value,
-      nome: newUserForm.newUserName.value,
-      email: newUserForm.newUserEmail.value,
-      cargo: newUserForm.newUserCargo.value
+// Salvar alterações
+editUserForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = editUserForm.editUserId.value;
+  const index = usuarios.findIndex(u => u.id == id);
+  if (index > -1) {
+    usuarios[index] = {
+      ...usuarios[index],
+      nome: editUserForm.editUserName.value,
+      email: editUserForm.editUserEmail.value,
+      cargo: editUserForm.editUserCargo.value
     };
+    renderizarUsuarios();
+    editUserModal.style.display = 'none';
+  }
+});
 
-    try {
-      const response = await fetch('/api/usuarios', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(novoUsuario)
-      });
+// Redefinir senha para padrão (coordenador)
+btnRedefinirSenhaPadrao.addEventListener('click', async () => {
+  const id = editUserForm.editUserId.value;
+  if (!confirm('Deseja redefinir a senha deste usuário para a padrão?')) return;
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert('Erro ao criar usuário: ' + errorData.error);
-        return;
-      }
+  try {
+    const res = await fetch(`/api/usuarios/${id}/redefinir-senha`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ novaSenha: "$2b$12$SafcGB.Y7vBzr1FB/KzVs.Ytm91/1IrUSQ0wp4..syc/fLZlb4dSS" }) // hash padrão
+    });
+    const data = await res.json();
+    if (res.ok) alert('Senha redefinida com sucesso!');
+    else alert(data.error);
+  } catch (err) { console.error(err); alert('Erro ao redefinir senha.'); }
+});
 
-      const data = await response.json();
-      alert('Usuário criado com sucesso! ID: ' + data.id);
+// Abrir modal de novo usuário
+btnNewUser.addEventListener('click', () => { newUserModal.style.display = 'block'; });
+closeNewUserModal.addEventListener('click', () => { newUserModal.style.display = 'none'; });
+window.addEventListener('click', e => { if(e.target === newUserModal) newUserModal.style.display = 'none'; });
 
-      // Atualiza a lista de usuários após criar
-      await carregarUsuarios(); // função que chama GET /api/usuarios e atualiza a tabela
-      newUserModal.style.display = 'none';
-      newUserForm.reset();
+// Criar novo usuário
+newUserForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const novoUsuario = {
+    login: newUserForm.newUserLogin.value,
+    nome: newUserForm.newUserName.value,
+    email: newUserForm.newUserEmail.value,
+    cargo: newUserForm.newUserCargo.value
+  };
 
-    } catch (err) {
-      console.error(err);
-      alert('Erro de conexão ao criar usuário.');
-    }
-  });
+  try {
+    const response = await fetch('/api/usuarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(novoUsuario)
+    });
 
+    if (!response.ok) { const errorData = await response.json(); alert('Erro ao criar usuário: ' + errorData.error); return; }
+    const data = await response.json();
+    alert('Usuário criado com sucesso! ID: ' + data.id);
+    await carregarUsuarios();
+    newUserModal.style.display = 'none';
+    newUserForm.reset();
+  } catch (err) { console.error(err); alert('Erro de conexão ao criar usuário.'); }
+});
 
+// Redefinir própria senha
+btnRedefinirMinhaSenha.addEventListener('click', async () => {
+  const novaSenha = inputNovaSenha.value;
+  if (!novaSenha) { alert('Digite a nova senha.'); return; }
+  if (!confirm('Deseja redefinir sua senha?')) return;
 
-  window.addEventListener('DOMContentLoaded', carregarUsuarios);
-  </script>
+  try {
+    const res = await fetch(`/api/usuarios/${usuarioLogado.id}/redefinir-senha`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ novaSenha }) // envia a senha escolhida pelo usuário
+    });
+    const data = await res.json();
+    if (res.ok) { alert('Senha redefinida com sucesso!'); inputNovaSenha.value = ''; }
+    else alert(data.error);
+  } catch (err) { console.error(err); alert('Erro ao redefinir senha.'); }
+});
+
+window.addEventListener('DOMContentLoaded', carregarUsuarios);
+</script>
 </body>
 </html>

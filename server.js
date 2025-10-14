@@ -397,87 +397,36 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Configurar transporte de e-mail
-const transporter = nodemailer.createTransport({
-  service: 'gmail', // ou outro SMTP
-  auth: {
-    user: process.env.GMAIL_NAME,         // seu e-mail
-    pass: process.env.GMAIL_PASSWORD,        // senha de app
-  }
-});
 
-// =======================
-// Solicitar redefinição de senha
-// =======================
-// Solicitar redefinição de senha
-app.post('/api/solicitar-redefinicao', async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email é obrigatório' });
+/* REDEFINIÇÃO DE SENHA ----------------------------- */
+app.post('/api/usuarios/:id/redefinir-senha', autenticar, async (req, res) => {
+  const { id } = req.params;
+  const { novaSenha } = req.body;
 
   try {
-    const usuarios = await lerAba('usuarios', 'usuarios!A:I');
-    const linha = usuarios.findIndex(u => u.email === email);
-    if (linha === -1) return res.status(404).json({ error: 'Usuário não encontrado' });
+    const usuarios = await lerAba('usuarios', 'usuarios!A:G'); // agora só A:G
+    const index = usuarios.findIndex(u => u.id == id);
+    if (index === -1) return res.status(404).json({ error: 'Usuário não encontrado' });
 
-    const linhaPlanilha = linha + 2; // +1 header +1 1-indexed
-    const user = usuarios[linha];
+    // Verifica permissão
+    if (req.usuario.cargo !== 'coordenador' && req.usuario.id != id) {
+      // Nem coordenador nem o próprio usuário
+      return res.status(403).json({ error: 'Acesso negado' });
+    }
 
-    const token = uuidv4();
-    const validade = Date.now() + 2 * 60 * 60 * 1000; // 2h
+    // Coordenador sempre redefine para senha padrão
+    const senhaParaSalvar = (req.usuario.cargo === 'coordenador' && req.usuario.id != id)
+      ? '$2b$12$SafcGB.Y7vBzr1FB/KzVs.Ytm91/1IrUSQ0wp4..syc/fLZlb4dSS' // hash padrão
+      : novaSenha; // próprio usuário escolhe a senha
 
-    // Atualizar token e validade na planilha
+    const linhaPlanilha = index + 2; // +1 header +1 1-indexed
+
+    // Atualiza apenas a coluna G
     await sheets.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
-      range: `usuarios!H${linhaPlanilha}:I${linhaPlanilha}`,
+      range: `usuarios!G${linhaPlanilha}`,
       valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [[token, validade]] }
-    });
-
-    const link = `https://condometas.onrender.com/redefinir-senha.html?token=${token}`;
-
-    await transporter.sendMail({
-      from: `"Sistema Condometas" <${process.env.GMAIL_NAME}>`,
-      to: email,
-      subject: 'Redefinição de Senha',
-      html: `<p>Clique no link abaixo para redefinir sua senha:</p>
-             <a href="${link}">${link}</a>
-             <p>O link expira em 2 horas.</p>`
-    });
-
-    res.json({ message: 'E-mail enviado com sucesso!' });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erro ao solicitar redefinição' });
-  }
-});
-
-
-// =======================
-// Redefinir senha
-// =======================
-// Redefinir senha
-app.post('/api/redefinir-senha', async (req, res) => {
-  const { token, novaSenha } = req.body;
-  if (!token || !novaSenha) return res.status(400).json({ error: 'Token e nova senha são obrigatórios' });
-
-  try {
-    const usuarios = await lerAba('usuarios', 'usuarios!A:I');
-    const linha = usuarios.findIndex(u => u.tokenRedefinicao === token);
-    if (linha === -1) return res.status(400).json({ error: 'Token inválido' });
-
-    const linhaPlanilha = linha + 2;
-    const user = usuarios[linha];
-
-    if (Date.now() > Number(user.tokenValidade)) return res.status(400).json({ error: 'Token expirado' });
-
-    const hash = await bcrypt.hash(novaSenha, 10);
-
-    await sheets.spreadsheets.values.update({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `usuarios!G${linhaPlanilha}:I${linhaPlanilha}`, // senhaHash, token, validade
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [[hash, '', '']] }
+      requestBody: { values: [[senhaParaSalvar]] }
     });
 
     res.json({ message: 'Senha redefinida com sucesso!' });
@@ -487,7 +436,6 @@ app.post('/api/redefinir-senha', async (req, res) => {
     res.status(500).json({ error: 'Erro ao redefinir senha' });
   }
 });
-
 
 // Inicialização do servidor
 const PORT = process.env.PORT || 3000;
