@@ -40,6 +40,8 @@
   <h1>Usuários</h1>
 
   <button id="btnNewUser" class="edit-user-btn" style="margin-bottom: 15px;">Novo Usuário</button>
+  <button id="btnAbrirRedefinirSenha" class="edit-user-btn" style="margin-bottom: 15px;">Redefinir Minha Senha</button>
+
   <section class="table-wrapper">
     <table>
       <thead>
@@ -89,18 +91,17 @@
           <label>Data Criação</label>
           <input type="date" id="editUserDataCriacao" name="editUserDataCriacao" readonly style="background: #f0f0f0;">
         </div>
-        <!-- Botão para coordenador redefinir senha de outro usuário -->
         <button type="button" id="btnRedefinirSenhaPadrao" class="reset-password-btn">Redefinir senha para padrão</button>
         <button type="submit">Salvar Alterações</button>
       </form>
     </div>
   </div>
 
-  <!-- Modal de Novo Usuário / redefinir própria senha -->
+  <!-- Modal de Novo Usuário -->
   <div id="newUserModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" id="closeNewUserModal">&times;</span>
-      <h2>Novo Usuário / Redefinir Minha Senha</h2>
+      <h2>Novo Usuário</h2>
       <form id="newUserForm">
         <div class="form-group">
           <label>Login</label>
@@ -123,31 +124,57 @@
             <option value="analista">Analista</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Nova Senha (para redefinir sua própria senha)</label>
-          <input type="password" id="novaSenhaUsuario" name="novaSenhaUsuario">
-        </div>
         <button type="submit">Criar Usuário</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal para redefinir própria senha -->
+  <div id="redefinirSenhaModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeRedefinirSenha">&times;</span>
+      <h2>Redefinir Minha Senha</h2>
+      <form id="redefinirSenhaForm">
+        <div class="form-group">
+          <label>Nova Senha</label>
+          <input type="password" id="novaSenhaUsuario" name="novaSenhaUsuario" required>
+        </div>
         <button type="button" id="btnRedefinirMinhaSenha" class="reset-password-btn">Redefinir Minha Senha</button>
       </form>
     </div>
   </div>
+
 </main>
 
 <script>
 const token = localStorage.getItem('token');
-if (!token) window.location.href = 'login.html';
-
+const usuarioLogado = JSON.parse(localStorage.getItem('usuario'));
 let usuarios = [];
 
-// Função para carregar usuários
+// Carregar usuários
 async function carregarUsuarios() {
   try {
     const res = await fetch('/api/usuarios', { headers: { 'Authorization': `Bearer ${token}` } });
     usuarios = res.ok ? await res.json() : [];
     renderizarUsuarios();
-  } catch (err) { console.error('Erro ao carregar usuários:', err); }
+  } catch (err) { console.error(err); }
 }
+
+// -------- MENU DROPDOWN -------- //
+
+  const menuButton = document.getElementById('menuButton');
+  const dropdownMenu = document.getElementById('dropdownMenu');
+
+  // Alterna visibilidade do menu
+  menuButton.addEventListener('click', (e) => {
+    e.stopPropagation(); // evita fechar imediatamente
+    dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+  });
+
+  // Fecha o menu ao clicar fora
+  document.addEventListener('click', () => {
+    dropdownMenu.style.display = 'none';
+  });
 
 function renderizarUsuarios() {
   const tabela = document.getElementById('usuariosTable');
@@ -170,21 +197,23 @@ const editUserForm = document.getElementById('editUserForm');
 const closeBtn = editUserModal.querySelector('.close-btn');
 const btnRedefinirSenhaPadrao = document.getElementById('btnRedefinirSenhaPadrao');
 
-// Modal de novo usuário / redefinir senha própria
+// Modal de novo usuário
 const newUserModal = document.getElementById('newUserModal');
 const btnNewUser = document.getElementById('btnNewUser');
 const closeNewUserModal = document.getElementById('closeNewUserModal');
 const newUserForm = document.getElementById('newUserForm');
+
+// Modal redefinir própria senha
+const btnAbrirRedefinirSenha = document.getElementById('btnAbrirRedefinirSenha');
+const redefinirSenhaModal = document.getElementById('redefinirSenhaModal');
+const closeRedefinirSenha = document.getElementById('closeRedefinirSenha');
 const btnRedefinirMinhaSenha = document.getElementById('btnRedefinirMinhaSenha');
 const inputNovaSenha = document.getElementById('novaSenhaUsuario');
-
-// Pegar dados do usuário logado
-const usuarioLogado = JSON.parse(localStorage.getItem('usuario'));
 
 // Mostrar botão de redefinir padrão apenas para coordenador
 btnRedefinirSenhaPadrao.style.display = usuarioLogado?.cargo === 'coordenador' ? 'block' : 'none';
 
-// Editar usuário
+// Abrir modal de edição
 document.addEventListener('click', e => {
   if (e.target.classList.contains('edit-user-btn')) {
     const id = e.target.dataset.id;
@@ -227,7 +256,7 @@ btnRedefinirSenhaPadrao.addEventListener('click', async () => {
     const res = await fetch(`/api/usuarios/${id}/redefinir-senha`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ novaSenha: "$2b$12$SafcGB.Y7vBzr1FB/KzVs.Ytm91/1IrUSQ0wp4..syc/fLZlb4dSS" }) // hash padrão
+      body: JSON.stringify({ novaSenha: "$2b$12$SafcGB.Y7vBzr1FB/KzVs.Ytm91/1IrUSQ0wp4..syc/fLZlb4dSS" })
     });
     const data = await res.json();
     if (res.ok) alert('Senha redefinida com sucesso!');
@@ -249,14 +278,12 @@ newUserForm.addEventListener('submit', async e => {
     email: newUserForm.newUserEmail.value,
     cargo: newUserForm.newUserCargo.value
   };
-
   try {
     const response = await fetch('/api/usuarios', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(novoUsuario)
     });
-
     if (!response.ok) { const errorData = await response.json(); alert('Erro ao criar usuário: ' + errorData.error); return; }
     const data = await response.json();
     alert('Usuário criado com sucesso! ID: ' + data.id);
@@ -266,8 +293,18 @@ newUserForm.addEventListener('submit', async e => {
   } catch (err) { console.error(err); alert('Erro de conexão ao criar usuário.'); }
 });
 
-// Redefinir própria senha
+// Abrir modal redefinir própria senha
+btnAbrirRedefinirSenha.addEventListener('click', () => {
+  redefinirSenhaModal.style.display = 'block';
+});
 
+// Fechar modal redefinir senha
+closeRedefinirSenha.addEventListener('click', () => {
+  redefinirSenhaModal.style.display = 'none';
+});
+window.addEventListener('click', e => { if(e.target === redefinirSenhaModal) redefinirSenhaModal.style.display = 'none'; });
+
+// Redefinir própria senha
 btnRedefinirMinhaSenha.addEventListener('click', async () => {
   const novaSenha = inputNovaSenha.value;
   if (!novaSenha) { alert('Digite a nova senha.'); return; }
@@ -277,10 +314,10 @@ btnRedefinirMinhaSenha.addEventListener('click', async () => {
     const res = await fetch(`/api/usuarios/${usuarioLogado.id}/redefinir-senha`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ novaSenha }) // envia a senha escolhida pelo usuário
+      body: JSON.stringify({ novaSenha })
     });
     const data = await res.json();
-    if (res.ok) { alert('Senha redefinida com sucesso!'); inputNovaSenha.value = ''; }
+    if (res.ok) { alert('Senha redefinida com sucesso!'); inputNovaSenha.value = ''; redefinirSenhaModal.style.display = 'none'; }
     else alert(data.error);
   } catch (err) { console.error(err); alert('Erro ao redefinir senha.'); }
 });

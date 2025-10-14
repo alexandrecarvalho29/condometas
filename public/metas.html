@@ -1164,6 +1164,7 @@ document.getElementById("formNovoCondominio").addEventListener("submit", async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        
         'Authorization': `Bearer ${token}`
      },
       body: JSON.stringify({ nomeCondominio: nome, metas })

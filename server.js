@@ -169,11 +169,12 @@ app.post('/api/usuarios', autenticar, async (req, res) => {
 
   try {
     const aba = 'usuarios';
-    const rangeLeitura = `${aba}!A:F`;
+    const rangeLeitura = `${aba}!A:G`;
 
     // Ler usuários existentes
     const dadosExistentes = await lerAba(aba, rangeLeitura);
     const ultimoId = Math.max(...dadosExistentes.map(u => Number(u.id) || 0), 0);
+    const senhaPadrao = "$2b$12$SafcGB.Y7vBzr1FB/KzVs.Ytm91/1IrUSQ0wp4..syc/fLZlb4dSS"
 
     // Novo usuário
     const novoUsuario = [
@@ -182,13 +183,14 @@ app.post('/api/usuarios', autenticar, async (req, res) => {
       nome,                    // C - nome
       email,                   // D - email
       cargo,                   // E - cargo
-      new Date().toISOString().split('T')[0] // F - data_criacao (yyyy-mm-dd)
+      new Date().toISOString().split('T')[0], // F - data_criacao (yyyy-mm-dd)
+      senhaPadrao
     ];
 
     // Escrever na planilha
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
-      range: `${aba}!A:F`,
+      range: `${aba}!A:G`,
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [novoUsuario] },
     });
