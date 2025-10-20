@@ -108,7 +108,7 @@
 
 <div class="login-container">
   <div class="login-header">
-    <h2>Bem-vindo</h2>
+    <h2>CondoMetas</h2>
     <p>Faça login para acessar o sistema</p>
   </div>
 
@@ -121,28 +121,15 @@
         <input type="checkbox" id="remember" class="h-4 w-4 text-blue-500 border-gray-300 rounded">
         <label for="remember" class="ml-2 text-gray-700 text-sm">Lembrar-me</label>
       </div>
-      <a href="#" id="esqueciSenha" class="text-blue-500 text-sm hover:underline">Esqueci a senha</a>
+      <!-- <a href="#" id="esqueciSenha" class="text-blue-500 text-sm hover:underline">Esqueci a senha</a> -->
     </div>
 
     <button type="submit" class="btn-login">Entrar</button>
   </form>
 
   <p class="footer-text">
-    Não tem uma conta? <a href="#">Crie aqui</a>
+    BI.Reports | Alexandre Carvalho
   </p>
-</div>
-
-<!-- Modal de redefinição de senha -->
-<div id="modalRedefinir" class="modal">
-  <div class="modal-content">
-    <h3 class="text-lg font-semibold mb-2">Redefinir senha</h3>
-    <p class="text-sm mb-2">Digite seu e-mail para receber o link:</p>
-    <input type="email" id="emailRedefinir" placeholder="seuemail@dominio.com" class="input-field">
-    <div class="flex justify-end gap-2">
-      <button id="btnCancelar" class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Cancelar</button>
-      <button id="btnEnviarLink" class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Enviar</button>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -162,6 +149,8 @@ form.addEventListener('submit', async (e) => {
     const data = await res.json();
     if (res.ok) {
       localStorage.setItem('token', data.token); // salvar token JWT
+      // Salva usuário completo
+      localStorage.setItem('usuario', JSON.stringify(data.usuario));
       alert('Login realizado com sucesso!');
       window.location.href = 'metas.html';
     } else {
@@ -170,43 +159,6 @@ form.addEventListener('submit', async (e) => {
   } catch (err) {
     console.error(err);
     alert('Erro ao logar');
-  }
-});
-
-// Modal de redefinição
-const linkEsqueci = document.getElementById('esqueciSenha');
-const modal = document.getElementById('modalRedefinir');
-const btnCancelar = document.getElementById('btnCancelar');
-const btnEnviar = document.getElementById('btnEnviarLink');
-const inputEmail = document.getElementById('emailRedefinir');
-
-linkEsqueci.addEventListener('click', (e) => {
-  e.preventDefault();
-  modal.classList.add('show');
-});
-
-btnCancelar.addEventListener('click', () => modal.classList.remove('show'));
-
-btnEnviar.addEventListener('click', async () => {
-  const email = inputEmail.value;
-  if (!email) return alert('Digite um e-mail válido');
-
-  try {
-    const res = await fetch('/api/solicitar-redefinicao', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      alert('Link de redefinição enviado! Verifique seu e-mail.');
-      modal.classList.remove('show');
-    } else {
-      alert(data.error);
-    }
-  } catch (err) {
-    console.error(err);
-    alert('Erro ao enviar link de redefinição');
   }
 });
 </script>

@@ -46,9 +46,9 @@ header .titulo {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.25rem;
+  /* gap: 5px; */
   background: rgba(255, 255, 255, 0.15);
-  padding: 5px 10px;
+  padding: 0px 10px;
   border-radius: 10px;
   backdrop-filter: blur(6px);
   font-size: 0.95rem;
@@ -142,50 +142,67 @@ header .titulo {
 }
 
 /* ==========================
-   TABELA DE USUÁRIOS
+   TABELA DE USUÁRIOS (ESTILO ATUALIZADO)
 ========================== */
 .table-wrapper {
   overflow-x: auto;
-  border-radius: 10px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
   background: #fff;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.edit-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    background-color: #ffe2d7; /* Laranja claro */
+    color: white;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.edit-btn:hover {
+    background-color: #1e40af; /* Azul mais escuro no hover */
 }
 
 thead {
-  background: #e2672d;
+  background: linear-gradient(90deg, #e6752a, #e05414);
   color: #fff;
   position: sticky;
   top: 0;
   z-index: 2;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
 thead th {
-  padding: 10px 12px;
-  font-size: 0.85rem;
+  padding: 12px 15px;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 2px solid #000;
+  border-bottom: 2px solid rgba(0,0,0,0.1);
 }
 
 tbody td {
-  padding: 8px 12px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 0.9rem;
-  color: #334155;
-}
-
-tbody tr:hover {
-  background-color: #f1f5ff;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #374151;
   transition: background 0.25s;
 }
 
+tbody tr:hover {
+  background-color: #fef3f2;
+}
+
 tbody tr:nth-child(even) {
-  background-color: #fff6f0;
+  background-color: #fffaf5;
 }
 
 tbody tr:nth-child(odd) {
@@ -193,24 +210,77 @@ tbody tr:nth-child(odd) {
 }
 
 /* ==========================
-   BOTÃO EDITAR
+   BOTÕES (ESTILO MODERNO)
 ========================== */
-.edit-user-btn {
-  padding: 4px 10px;
+button {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
   border: none;
-  border-radius: 6px;
-  background-color: #2563eb;
-  color: #fff;
-  font-size: 0.8rem;
-  font-weight: 500;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
+  transition: all 0.2s ease;
+}
+
+/* Editar usuário */
+.edit-user-btn {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(37,99,235,0.3);
 }
 
 .edit-user-btn:hover {
-  background-color: #1e40af;
-  transform: translateY(-1px);
+  background: #1e40af;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(30,64,175,0.3);
 }
+
+.redefinir-senha-btn {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(37,99,235,0.3);
+}
+
+.redefinir-senha-btn:hover {
+  background: #1e40af;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(30,64,175,0.3);
+}
+
+/* Redefinir senha */
+.reset-password-btn {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  background: #e05414;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(224,84,20,0.3);
+}
+
+.reset-password-btn:hover {
+  background: #c4430f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(196,67,15,0.3);
+}
+
+/* Botões de criação de usuário */
+button[type="submit"] {
+  background: #16a34a;
+  color: #fff;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(22,163,74,0.3);
+}
+
+button[type="submit"]:hover {
+  background: #15803d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(21,128,61,0.3);
+}
+
 
 /* ==========================
    BADGES DE CARGO

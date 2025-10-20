@@ -15,6 +15,9 @@
       border-radius: 0.5rem; 
       cursor: pointer;
     }
+    .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+    .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 400px; width: 90%; }
+    .close-btn { cursor: pointer; float: right; font-size: 1.2rem; }
   </style>
 </head>
 <body>
@@ -29,6 +32,11 @@
     </button>      
   </div>
 
+    <section class="user-info">
+      <span id="usuarioNome"></span>
+      <span id="usuarioCargo" class="user-role"></span>
+    </section>
+
   <div id="dropdownMenu">
     <a href="metas.html">Metas</a>
     <a href="usuarios.html">Usuários</a>
@@ -40,7 +48,7 @@
   <h1>Usuários</h1>
 
   <button id="btnNewUser" class="edit-user-btn" style="margin-bottom: 15px;">Novo Usuário</button>
-  <button id="btnAbrirRedefinirSenha" class="edit-user-btn" style="margin-bottom: 15px;">Redefinir Minha Senha</button>
+  <button id="btnAbrirRedefinirSenha" class="redefinir-senha-btn" style="margin-bottom: 15px;">Redefinir Minha Senha</button>
 
   <section class="table-wrapper">
     <table>
@@ -147,11 +155,36 @@
 </main>
 
 <script>
+  // Verifica login e permissão ao carregar a página
+  (function verificarAcessoTelaUsuarios() {
+    const token = localStorage.getItem('token');
+    const usuario = JSON.parse(localStorage.getItem('usuario'));
+
+    // Se não estiver logado, redireciona para login
+    if (!token || !usuario) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Bloqueia analistas
+    if ((usuario.cargo || '').toLowerCase() === 'analista') {
+      alert('Acesso negado: você não tem permissão para acessar esta página.');
+      window.location.href = 'metas.html'; // ou outra página permitida
+      return;
+    }
+
+    // Se chegou aqui, usuário pode acessar a página
+  })();
+
 const token = localStorage.getItem('token');
 const usuarioLogado = JSON.parse(localStorage.getItem('usuario'));
+if (usuarioLogado) {
+      document.getElementById('usuarioNome').textContent = usuarioLogado.nome;
+      document.getElementById('usuarioCargo').textContent = usuarioLogado.cargo;
+    }
 let usuarios = [];
 
-// Carregar usuários
+// ====== FUNÇÕES PRINCIPAIS ====== //
 async function carregarUsuarios() {
   try {
     const res = await fetch('/api/usuarios', { headers: { 'Authorization': `Bearer ${token}` } });
@@ -160,27 +193,11 @@ async function carregarUsuarios() {
   } catch (err) { console.error(err); }
 }
 
-// -------- MENU DROPDOWN -------- //
-
-  const menuButton = document.getElementById('menuButton');
-  const dropdownMenu = document.getElementById('dropdownMenu');
-
-  // Alterna visibilidade do menu
-  menuButton.addEventListener('click', (e) => {
-    e.stopPropagation(); // evita fechar imediatamente
-    dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
-  });
-
-  // Fecha o menu ao clicar fora
-  document.addEventListener('click', () => {
-    dropdownMenu.style.display = 'none';
-  });
-
 function renderizarUsuarios() {
   const tabela = document.getElementById('usuariosTable');
   tabela.innerHTML = usuarios.map(u => `
     <tr>
-      <td><button class="edit-user-btn" data-id="${u.id}">Editar</button></td>
+      <td><button class="edit-btn" data-id="${u.id}">✏️</button></td>
       <td>${u.id}</td>
       <td>${u.login}</td>
       <td>${u.nome}</td>
@@ -191,19 +208,26 @@ function renderizarUsuarios() {
   `).join('');
 }
 
-// Modal de edição
+// ====== MENU DROPDOWN ====== //
+const menuButton = document.getElementById('menuButton');
+const dropdownMenu = document.getElementById('dropdownMenu');
+menuButton.addEventListener('click', e => {
+  e.stopPropagation();
+  dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+});
+document.addEventListener('click', () => { dropdownMenu.style.display = 'none'; });
+
+// ====== MODAIS ====== //
 const editUserModal = document.getElementById('editUserModal');
 const editUserForm = document.getElementById('editUserForm');
 const closeBtn = editUserModal.querySelector('.close-btn');
 const btnRedefinirSenhaPadrao = document.getElementById('btnRedefinirSenhaPadrao');
 
-// Modal de novo usuário
 const newUserModal = document.getElementById('newUserModal');
 const btnNewUser = document.getElementById('btnNewUser');
 const closeNewUserModal = document.getElementById('closeNewUserModal');
 const newUserForm = document.getElementById('newUserForm');
 
-// Modal redefinir própria senha
 const btnAbrirRedefinirSenha = document.getElementById('btnAbrirRedefinirSenha');
 const redefinirSenhaModal = document.getElementById('redefinirSenhaModal');
 const closeRedefinirSenha = document.getElementById('closeRedefinirSenha');
@@ -213,7 +237,8 @@ const inputNovaSenha = document.getElementById('novaSenhaUsuario');
 // Mostrar botão de redefinir padrão apenas para coordenador
 btnRedefinirSenhaPadrao.style.display = usuarioLogado?.cargo === 'coordenador' ? 'block' : 'none';
 
-// Abrir modal de edição
+// ====== MODAL EDIÇÃO ======
+closeBtn.addEventListener('click', () => { editUserModal.style.display = 'none'; });
 document.addEventListener('click', e => {
   if (e.target.classList.contains('edit-user-btn')) {
     const id = e.target.dataset.id;
@@ -226,85 +251,100 @@ document.addEventListener('click', e => {
     editUserForm.editUserCargo.value = user.cargo;
     editUserForm.editUserDataCriacao.value = user.data_criacao || '';
 
-    editUserModal.style.display = 'block';
+    editUserModal.style.display = 'flex';
   }
 });
 
-// Salvar alterações
 editUserForm.addEventListener('submit', async e => {
   e.preventDefault();
   const id = editUserForm.editUserId.value;
-  const index = usuarios.findIndex(u => u.id == id);
-  if (index > -1) {
-    usuarios[index] = {
-      ...usuarios[index],
-      nome: editUserForm.editUserName.value,
-      email: editUserForm.editUserEmail.value,
-      cargo: editUserForm.editUserCargo.value
-    };
-    renderizarUsuarios();
+
+  const dadosAtualizados = {
+    nome: editUserForm.editUserName.value,
+    email: editUserForm.editUserEmail.value,
+    cargo: editUserForm.editUserCargo.value
+  };
+
+  try {
+    const token = localStorage.getItem('token');
+    const btnSalvar = editUserForm.querySelector('button[type="submit"]');
+    btnSalvar.disabled = true;
+    btnSalvar.textContent = 'Salvando...';
+
+    const response = await fetch(`/api/usuarios/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(dadosAtualizados)
+    });
+
+    const data = await response.json();
+    btnSalvar.disabled = false;
+    btnSalvar.textContent = 'Salvar';
+
+    if (!response.ok) throw new Error(data.error || 'Erro ao salvar alterações');
+
+    alert('Usuário atualizado com sucesso!');
     editUserModal.style.display = 'none';
+    carregarUsuarios(); // recarrega a lista com os dados atualizados
+  } catch (err) {
+    console.error(err);
+    alert('Erro ao atualizar usuário: ' + err.message);
   }
 });
 
-// Redefinir senha para padrão (coordenador)
-btnRedefinirSenhaPadrao.addEventListener('click', async () => {
-  const id = editUserForm.editUserId.value;
-  if (!confirm('Deseja redefinir a senha deste usuário para a padrão?')) return;
-
-  try {
-    const res = await fetch(`/api/usuarios/${id}/redefinir-senha`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ novaSenha: "$2b$12$SafcGB.Y7vBzr1FB/KzVs.Ytm91/1IrUSQ0wp4..syc/fLZlb4dSS" })
-    });
-    const data = await res.json();
-    if (res.ok) alert('Senha redefinida com sucesso!');
-    else alert(data.error);
-  } catch (err) { console.error(err); alert('Erro ao redefinir senha.'); }
-});
-
-// Abrir modal de novo usuário
-btnNewUser.addEventListener('click', () => { newUserModal.style.display = 'block'; });
+// ====== MODAL NOVO USUÁRIO ======
+btnNewUser.addEventListener('click', () => { newUserModal.style.display = 'flex'; });
 closeNewUserModal.addEventListener('click', () => { newUserModal.style.display = 'none'; });
 window.addEventListener('click', e => { if(e.target === newUserModal) newUserModal.style.display = 'none'; });
 
-// Criar novo usuário
 newUserForm.addEventListener('submit', async e => {
   e.preventDefault();
-  const novoUsuario = {
-    login: newUserForm.newUserLogin.value,
-    nome: newUserForm.newUserName.value,
-    email: newUserForm.newUserEmail.value,
-    cargo: newUserForm.newUserCargo.value
-  };
+
+  const login = newUserForm.newUserLogin.value.trim();
+  const nome = newUserForm.newUserName.value.trim();
+  const email = newUserForm.newUserEmail.value.trim();
+  const cargo = newUserForm.newUserCargo.value;
+
+  if (usuarios.some(u => u.login.toLowerCase() === login.toLowerCase())) { alert('Este login já está cadastrado.'); return; }
+  if (usuarios.some(u => u.nome.toLowerCase() === nome.toLowerCase())) { alert('Este nome já está cadastrado.'); return; }
+  if (usuarios.some(u => u.email.toLowerCase() === email.toLowerCase())) { alert('Este email já está cadastrado.'); return; }
+  if (!login.includes('.')) { alert('O login deve estar no formato nome.sobrenome.'); return; }
+
+  const novoUsuario = { login, nome, email, cargo };
+
   try {
-    const response = await fetch('/api/usuarios', {
+    const response = await fetch('/api/novoUsuario', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(novoUsuario)
     });
-    if (!response.ok) { const errorData = await response.json(); alert('Erro ao criar usuário: ' + errorData.error); return; }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      alert('Erro ao criar usuário: ' + errorData.error);
+      return;
+    }
+
     const data = await response.json();
     alert('Usuário criado com sucesso! ID: ' + data.id);
     await carregarUsuarios();
     newUserModal.style.display = 'none';
     newUserForm.reset();
-  } catch (err) { console.error(err); alert('Erro de conexão ao criar usuário.'); }
+  } catch (err) {
+    console.error(err);
+    alert('Erro de conexão ao criar usuário.');
+  }
 });
 
-// Abrir modal redefinir própria senha
-btnAbrirRedefinirSenha.addEventListener('click', () => {
-  redefinirSenhaModal.style.display = 'block';
-});
-
-// Fechar modal redefinir senha
-closeRedefinirSenha.addEventListener('click', () => {
-  redefinirSenhaModal.style.display = 'none';
-});
+// ====== MODAL REDEFINIR PRÓPRIA SENHA ======
+btnAbrirRedefinirSenha.addEventListener('click', () => { redefinirSenhaModal.style.display = 'flex'; });
+closeRedefinirSenha.addEventListener('click', () => { redefinirSenhaModal.style.display = 'none'; });
 window.addEventListener('click', e => { if(e.target === redefinirSenhaModal) redefinirSenhaModal.style.display = 'none'; });
 
-// Redefinir própria senha
+// PUT para redefinir própria senha
 btnRedefinirMinhaSenha.addEventListener('click', async () => {
   const novaSenha = inputNovaSenha.value;
   if (!novaSenha) { alert('Digite a nova senha.'); return; }
@@ -312,15 +352,50 @@ btnRedefinirMinhaSenha.addEventListener('click', async () => {
 
   try {
     const res = await fetch(`/api/usuarios/${usuarioLogado.id}/redefinir-senha`, {
-      method: 'POST',
+      method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ novaSenha })
     });
-    const data = await res.json();
-    if (res.ok) { alert('Senha redefinida com sucesso!'); inputNovaSenha.value = ''; redefinirSenhaModal.style.display = 'none'; }
-    else alert(data.error);
-  } catch (err) { console.error(err); alert('Erro ao redefinir senha.'); }
+
+    let data;
+    try { data = await res.json(); } 
+    catch { 
+      const text = await res.text(); 
+      console.error('Resposta não JSON:', text);
+      alert('Erro ao redefinir senha (resposta inválida do servidor).'); 
+      return; 
+    }
+
+    if (res.ok) {
+      alert('Senha redefinida com sucesso!');
+      inputNovaSenha.value = '';
+      redefinirSenhaModal.style.display = 'none';
+    } else alert(data.error);
+
+  } catch (err) {
+    console.error(err);
+    alert('Erro ao redefinir senha.');
+  }
 });
+
+btnRedefinirSenhaPadrao.addEventListener('click', async () => {
+  const id = editUserForm.editUserId.value;
+  if (!confirm('Deseja redefinir a senha deste usuário para a senha padrão?')) return;
+
+  try {
+    const res = await fetch(`/api/usuarios/${id}/senha-padrao`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+    alert(res.ok ? data.message : data.error);
+  } catch (err) {
+    console.error(err);
+    alert('Erro ao redefinir senha padrão.');
+  }
+});  
+
 
 window.addEventListener('DOMContentLoaded', carregarUsuarios);
 </script>

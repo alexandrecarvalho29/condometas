@@ -160,7 +160,7 @@ app.get('/api/usuarios', autenticar, async (req, res) => {
 /**
  * Criar novo usuário (A:F)
  */
-app.post('/api/usuarios', autenticar, async (req, res) => {
+app.post('/api/novoUsuario', autenticar, async (req, res) => {
   const { login, nome, email, cargo } = req.body;
 
   if (!login || !nome || !email || !cargo) {
@@ -389,8 +389,18 @@ app.post('/api/login', async (req, res) => {
     const senhaValida = await bcrypt.compare(password, user.senhaHash);
     if (!senhaValida) return res.status(401).json({ error: 'Senha inválida' });
 
-    const token = jwt.sign({ id: user.id, email: user.email, login: user.login }, 'SEGREDO_SUPERSECRETO', { expiresIn: '2h' });
-    res.json({ token });
+    const token = jwt.sign({ id: user.id, email: user.email, login: user.login, cargo: user.cargo }, 'SEGREDO_SUPERSECRETO', { expiresIn: '12h' });
+    // Retorna o token e os dados do usuário
+      res.json({
+        token,
+        usuario: {
+          id: user.id,
+          login: user.login,
+          nome: user.nome,      // adiciona o nome
+          email: user.email,    // adiciona o email
+          cargo: user.cargo
+        }
+      });
 
   } catch (err) {
     console.error(err);
@@ -398,43 +408,114 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-
-/* REDEFINIÇÃO DE SENHA ----------------------------- */
-app.post('/api/usuarios/:id/redefinir-senha', autenticar, async (req, res) => {
+app.put('/api/usuarios/:id/redefinir-senha', autenticar, async (req, res) => {
   const { id } = req.params;
   const { novaSenha } = req.body;
 
+  console.log('ID param:', id);
+  console.log('Nova senha:', novaSenha);
+  console.log('Usuario logado:', req.user);
+
   try {
-    const usuarios = await lerAba('usuarios', 'usuarios!A:G'); // agora só A:G
+    const usuarios = await lerAba('usuarios', 'usuarios!A:G');
+    console.log('Usuarios da planilha:', usuarios);
+
     const index = usuarios.findIndex(u => u.id == id);
     if (index === -1) return res.status(404).json({ error: 'Usuário não encontrado' });
 
-    // Verifica permissão
-    if (req.usuario.cargo !== 'coordenador' && req.usuario.id != id) {
-      // Nem coordenador nem o próprio usuário
+    if (String(req.user.id) !== String(id)) {
       return res.status(403).json({ error: 'Acesso negado' });
     }
 
-    // Coordenador sempre redefine para senha padrão
-    const senhaParaSalvar = (req.usuario.cargo === 'coordenador' && req.usuario.id != id)
-      ? '$2b$12$SafcGB.Y7vBzr1FB/KzVs.Ytm91/1IrUSQ0wp4..syc/fLZlb4dSS' // hash padrão
-      : novaSenha; // próprio usuário escolhe a senha
+    const senhaParaSalvar = await bcrypt.hash(novaSenha, 12);
 
-    const linhaPlanilha = index + 2; // +1 header +1 1-indexed
+    const linhaPlanilha = index + 2;
+    console.log('Atualizando planilha na linha:', linhaPlanilha);
 
-    // Atualiza apenas a coluna G
     await sheets.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
       range: `usuarios!G${linhaPlanilha}`,
       valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [[senhaParaSalvar]] }
+      resource: { values: [[senhaParaSalvar]] }
     });
 
     res.json({ message: 'Senha redefinida com sucesso!' });
 
   } catch (err) {
-    console.error(err);
+    console.error('Erro ao redefinir senha:', err);
     res.status(500).json({ error: 'Erro ao redefinir senha' });
+  }
+});
+
+
+app.put('/api/usuarios/:id/senha-padrao', autenticar, async (req, res) => {
+  const { id } = req.params;
+
+  console.log('Requisição para redefinir senha padrão do usuário ID:', id);
+  console.log('Usuário logado:', req.user);
+
+  try {
+    // Apenas coordenador ou admin podem redefinir senhas de outros
+    if (req.user.cargo !== 'coordenador' && req.user.cargo !== 'admin') {
+      return res.status(403).json({ error: 'Acesso negado. Apenas coordenadores ou administradores podem redefinir senhas.' });
+    }
+
+    // Lê todos os usuários da planilha
+    const usuarios = await lerAba('usuarios', 'usuarios!A:G');
+    const index = usuarios.findIndex(u => u.id == id);
+    if (index === -1) return res.status(404).json({ error: 'Usuário não encontrado' });
+
+    // Define a senha padrão (você pode mudar o texto aqui se quiser)
+    const senhaPadrao = '123456';
+    const senhaCriptografada = await bcrypt.hash(senhaPadrao, 12);
+
+    // Atualiza na planilha (coluna G)
+    const linhaPlanilha = index + 2;
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `usuarios!G${linhaPlanilha}`,
+      valueInputOption: 'USER_ENTERED',
+      resource: { values: [[senhaCriptografada]] }
+    });
+
+    console.log(`Senha do usuário ${id} redefinida para o padrão com sucesso.`);
+    res.json({ message: 'Senha redefinida para o padrão com sucesso!' });
+
+  } catch (err) {
+    console.error('Erro ao redefinir senha padrão:', err);
+    res.status(500).json({ error: 'Erro ao redefinir senha padrão' });
+  }
+});
+
+// Rota para editar dados de um usuário
+app.put('/api/usuarios/:id', autenticar, async (req, res) => {
+  const { id } = req.params;
+  const { nome, email, cargo } = req.body;
+
+  try {
+    const usuarios = await lerAba('usuarios', 'usuarios!A:G');
+    const index = usuarios.findIndex(u => u.id == id);
+    if (index === -1) return res.status(404).json({ error: 'Usuário não encontrado' });
+
+    // Permitir que apenas gerente ou coordenador edite
+    if (req.user.cargo !== 'gerente' && req.user.cargo !== 'coordenador') {
+      return res.status(403).json({ error: 'Acesso negado' });
+    }
+
+    const linhaPlanilha = index + 2; // linha real na planilha (pula cabeçalho)
+
+    // Atualiza as colunas C, D e E (nome, email, cargo)
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `usuarios!C${linhaPlanilha}:E${linhaPlanilha}`,
+      valueInputOption: 'USER_ENTERED',
+      resource: { values: [[nome, email, cargo]] }
+    });
+
+    res.json({ message: 'Usuário atualizado com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao atualizar usuário:', err);
+    res.status(500).json({ error: 'Erro ao atualizar usuário' });
   }
 });
 

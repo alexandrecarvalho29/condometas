@@ -22,8 +22,8 @@
     </div>
 
     <section class="user-info">
-      <span>Alexandre Carvalho</span>
-      <span class="user-role">Admin</span>
+      <span id="usuarioNome"></span>
+      <span id="usuarioCargo" class="user-role"></span>
     </section>
 
     <div id="dropdownMenu">
@@ -85,6 +85,13 @@ if (!token) {
   });
 
 // ---------------------------------------------------- //
+
+const usuarioLogado = JSON.parse(localStorage.getItem('usuario'));
+
+    if (usuarioLogado) {
+      document.getElementById('usuarioNome').textContent = usuarioLogado.nome;
+      document.getElementById('usuarioCargo').textContent = usuarioLogado.cargo;
+    }
 </script>
 </body>
 </html>

@@ -10,6 +10,7 @@
 <body>
   <header class="header">
     <div class="left-group">
+      <img src="https://i.imgur.com/GblPjCm.png" alt="Condometas Logo" class="logo">
       <div class="titulo">Condometas</div>
       <button id="menuButton">
       <div class="hamburguer">
@@ -21,10 +22,10 @@
     </button>      
     </div>
 
-    <!-- <section class="user-info">
-      <span>Alexandre Carvalho</span>
-      <span class="user-role">Admin</span>
-    </section> -->
+    <section class="user-info">
+      <span id="usuarioNome"></span>
+      <span id="usuarioCargo" class="user-role"></span>
+    </section>
 
     <div id="dropdownMenu">
       <a href="metas.html">Metas</a>
@@ -55,35 +56,6 @@
     <div class="status-card bg-yellow">
       <span>Pendente</span>
       <strong id="pendente">0</strong>
-    </div>
-
-    <!-- Card Porcentagem com mini tabela dentro -->
-    <div class="status-card bg-gray porcentagem-card">
-      <span>Porcentagem</span>
-      <strong id="porcentagem">0%</strong>
-
-      <!-- Mini tabela que aparece ao passar o mouse -->
-      <div class="mini-tabela">
-        <table>
-          <thead>
-            <tr>
-              <th>Meta</th>
-              <th>% No Prazo</th>
-            </tr>
-          </thead>
-          <tbody id="miniTabelaBody">
-            <tr>
-              <td>Meta 1</td>
-              <td>80%</td>
-            </tr>
-            <tr>
-              <td>Meta 2</td>
-              <td>65%</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -215,16 +187,14 @@
             <th>Meta</th>
             <th>Mês</th>            
             <th>Condomínio</th>
-            <th>Financeiro</th>
-            <th>Contábil</th>
-            <th>Status</th>
-            <th>Data Cond</th>
-            <th>Data Limite</th>
-            <th>Data Envio</th>
             <th>Gerente</th>
             <th>Coordenador</th>
-            <th>Particularidade</th>
-            <th>Observacoes</th>   
+            <th>Financeiro</th>
+            <th>Contábil</th>            
+            <th>Data Cond</th>
+            <th>Data Limite</th>
+            <th>Data Envio</th>     
+            <th>Status</th>       
           </tr>
         </thead>
         <tbody id="metasTable"></tbody>
@@ -272,19 +242,27 @@
 
       <div class="form-group">
         <label>Gerente</label>
-        <input type="text" id="editGerente" name="editGerente">
+        <select id="editGerente" name="editGerente">
+          <option value=""></option>
+        </select>
       </div>
       <div class="form-group">
         <label>Coordenador</label>
-        <input type="text" id="editCoordenador" name="editCoordenador">
+        <select id="editCoordenador" name="editCoordenador">
+          <option value=""></option>
+        </select>
       </div>
       <div class="form-group">
         <label>Financeiro</label>
-        <input type="text" id="editFinanceiro" name="editFinanceiro">
+        <select id="editFinanceiro" name="editFinanceiro">
+          <option value=""></option>
+        </select>
       </div>
       <div class="form-group">
         <label>Contábil</label>
-        <input type="text" id="editContabil" name="editContabil">
+        <select id="editContabil" name="editContabil">
+          <option value=""></option>
+        </select>
       </div>
       <div class="form-group">
         <label>Data Condomínio</label>
@@ -332,6 +310,7 @@
     <div class="form-group">
       <label for="colunaSelecionada">Selecione a coluna:</label>
       <select id="colunaSelecionada">
+        <option value="gerente">Selecione uma coluna</option>
         <option value="gerente">Gerente</option>
         <option value="coordenador">Coordenador</option>
         <option value="financeiro">Financeiro</option>
@@ -344,8 +323,11 @@
     </div>
 
     <div class="form-group">
-      <label for="novoValor">Novo valor:</label>
-      <input type="text" id="novoValor" placeholder="Digite o novo valor">
+      <label for="novoValorContainer">Novo valor:</label>
+      <div id="novoValorContainer">
+        <!-- Aqui o input ou select será inserido dinamicamente -->
+        <input type="text" id="novoValor" placeholder="Digite o novo valor">
+      </div>
     </div>
 
     <div class="button-group">
@@ -430,14 +412,19 @@
     total: document.getElementById('totalMetas'),
     noPrazo: document.getElementById('noPrazo'),
     atrasado: document.getElementById('atrasado'),
-    pendente: document.getElementById('pendente'),
-    porcentagem: document.getElementById('porcentagem')
+    pendente: document.getElementById('pendente')
   };
 
   function getStatusBadge(status) {
     const safeStatus = status.toLowerCase().replace(/\s/g, '-');
     return `<span class="badge badge-${safeStatus}">${status}</span>`;
   }
+
+  function getMetaBadge(meta) {
+      // Cria uma classe segura, sem espaços e com letras minúsculas
+      const safeMeta = meta.toLowerCase().replace(/\s/g, '-');
+      return `<span class="badge badge-meta-${safeMeta}">${meta}</span>`;
+    }
 
   async function carregarMetas() {
     const token = localStorage.getItem('token');
@@ -463,33 +450,19 @@
     const noPrazo = metasFiltradas.filter(m => m.status === 'No prazo').length;
     const atrasado = metasFiltradas.filter(m => m.status === 'Atrasado').length;
     const pendente = metasFiltradas.filter(m => m.status === 'Pendente').length;
-    const porcentagem = total ? ((noPrazo / total) * 100).toFixed(2) + '%' : '0%';
 
     statusEls.total.textContent = total;
     statusEls.noPrazo.textContent = noPrazo;
     statusEls.atrasado.textContent = atrasado;
     statusEls.pendente.textContent = pendente;
-    statusEls.porcentagem.textContent = porcentagem;
-
-    atualizarMiniTabela(metasFiltradas);
   }
 
-  function atualizarMiniTabela(metasFiltradas) {
-    const tbody = document.getElementById('miniTabelaBody');
-    tbody.innerHTML = '';
-    const grupos = {};
+  const usuarioLogado = JSON.parse(localStorage.getItem('usuario'));
 
-    metasFiltradas.forEach(m => {
-      if (!grupos[m.meta]) grupos[m.meta] = { total: 0, noPrazo: 0 };
-      grupos[m.meta].total++;
-      if (m.status === 'No prazo') grupos[m.meta].noPrazo++;
-    });
-
-    Object.entries(grupos).forEach(([meta, { total, noPrazo }]) => {
-      const perc = ((noPrazo / total) * 100).toFixed(2) + '%';
-      tbody.innerHTML += `<tr><td>${meta}</td><td>${perc}</td></tr>`;
-    });
-  }
+    if (usuarioLogado) {
+      document.getElementById('usuarioNome').textContent = usuarioLogado.nome;
+      document.getElementById('usuarioCargo').textContent = usuarioLogado.cargo;
+    }
 
 // -------- MENU DROPDOWN -------- //
 
@@ -555,14 +528,20 @@
     const dataLim = parseDate(m.data_limite);
     const dataEnv = parseDate(m.data_envio);
 
-    if (filtros.dataInicioCondominio && dataCond < new Date(filtros.dataInicioCondominio)) return false;
-    if (filtros.dataFimCondominio && dataCond > new Date(filtros.dataFimCondominio)) return false;
+    // adiciona 1 dia para garantir que o último dia seja incluído
+    const dataFimCondominio = new Date(filtros.dataFimCondominio);
+    dataFimCondominio.setDate(dataFimCondominio.getDate() + 1);
 
-    if (filtros.dataInicioLimite && dataLim < new Date(filtros.dataInicioLimite)) return false;
-    if (filtros.dataFimLimite && dataLim > new Date(filtros.dataFimLimite)) return false;
+    const dataFimLimite = new Date(filtros.dataFimLimite);
+    dataFimLimite.setDate(dataFimLimite.getDate() + 1);
 
-    if (filtros.dataInicioEnvio && dataEnv < new Date(filtros.dataInicioEnvio)) return false;
-    if (filtros.dataFimEnvio && dataEnv > new Date(filtros.dataFimEnvio)) return false;
+    const dataFimEnvio = new Date(filtros.dataFimEnvio);
+    dataFimEnvio.setDate(dataFimEnvio.getDate() + 1);
+
+    // filtro
+    if (filtros.dataInicioCondominio && (dataCond < new Date(filtros.dataInicioCondominio) || dataCond > dataFimCondominio)) return false;
+    if (filtros.dataInicioLimite && (dataLim < new Date(filtros.dataInicioLimite) || dataLim > dataFimLimite)) return false;
+    if (filtros.dataInicioEnvio && (dataEnv < new Date(filtros.dataInicioEnvio) || dataEnv > dataFimEnvio)) return false;
 
     return true;
   });
@@ -607,24 +586,52 @@ btnLimpar.addEventListener('click', () => {
     const pagina = filtradas.slice(inicio, fim);
 
     const tabela = document.getElementById('metasTable');
-    tabela.innerHTML = pagina.map(meta => `
+    tabela.innerHTML = pagina.map(meta => {
+    // Define se os campos estão preenchidos
+    const temObs = meta.observacao && meta.observacao.trim() !== '';
+    const obsTooltip = temObs ? meta.observacao.replace(/"/g, '&quot;') : 'Sem observação';
+    const temParticularidade = meta.particularidade === true || meta.particularidade === '1';
+    const temNaoGerar = meta.nao_gerar === true || meta.nao_gerar === '1';
+
+    return `
       <tr>
-        <td><button class="edit-btn" data-id="${meta.id}">✏️</button></td>
+        <td class="acoes-cell">
+          <button class="edit-btn" data-id="${meta.id}" title="Editar meta">✏️</button>
+
+          <button 
+            class="icone obs-icon ${temObs ? 'ativo' : ''}" 
+            data-id="${meta.id}" 
+            title="Observações: ${obsTooltip}">
+            📝
+          </button>
+
+          <span 
+            class="icone ${temParticularidade ? 'ativo' : ''}" 
+            title="Particularidade ${temParticularidade ? 'presente' : 'ausente'}">
+            ❗
+          </span>
+
+          <span 
+            class="icone ${temNaoGerar ? 'ativo' : ''}" 
+            title="Não gerar ${temNaoGerar ? 'ativado' : 'desativado'}">
+            🚫
+          </span>
+        </td>
         <td>${meta.id}</td>
-        <td>${meta.meta}</td>
+        <td>${getMetaBadge(meta.meta)}</td>
         <td>${meta.mes_apuracao || ''}</td>
         <td>${meta.condominio}</td>
+        <td>${meta.gerente}</td>
+        <td>${meta.coordenador}</td>
         <td>${meta.financeiro}</td>
-        <td>${meta.contabil}</td>
-        <td>${getStatusBadge(meta.status)}</td>
+        <td>${meta.contabil}</td>        
         <td>${meta.data_condominio}</td>
         <td>${meta.data_limite || ''}</td>
-        <td>${meta.data_envio || ''}</td>
-        <td>${meta.gerente}</td>
-        <td>${meta.coordenador}</td>          
-        <td>${meta.particularidade || ''}</td>
-        <td>${meta.observacao || ''}</td>
-      </tr>`).join('');
+        <td>${meta.data_envio || ''}</td>        
+        <td>${getStatusBadge(meta.status)}</td>
+      </tr>
+    `;
+  }).join('');
 
     document.getElementById('pageInfo').textContent = `Página ${paginaAtual} de ${totalPaginas}`;
     document.getElementById('prevPage').disabled = paginaAtual === 1;
@@ -671,18 +678,26 @@ function parseDate(ddmmyyyy) {
 
 // ----------------MODAL DE EDIÇÃO------------------ //
 
-
 // Modal
 const modal = document.getElementById('editModal');
 const closeBtn = modal.querySelector('.close-btn');
 const editForm = document.getElementById('editForm');
 
-document.addEventListener('click', e => {
+document.addEventListener('click', async e => {
   if (e.target.classList.contains('edit-btn')) {
     const metaId = e.target.dataset.id;
     const meta = metas.find(m => m.id == metaId);
 
-    // Preencher o formulário
+    // 🔹 1. Carrega as opções da API (mesma função usada no modal novo)
+    const { gerentes, coordenadores, analistas } = await carregarOpcoes();
+
+    // 🔹 2. Popula os selects dinamicamente
+    popularSelect('editGerente', gerentes);
+    popularSelect('editCoordenador', coordenadores);
+    popularSelect('editFinanceiro', analistas);
+    popularSelect('editContabil', analistas);
+
+    // 3. Preencher o formulário
     editForm.editId.value = meta.id,
     editForm.editGerente.value = meta.gerente;
     editForm.editCoordenador.value = meta.coordenador;
@@ -769,25 +784,27 @@ editForm.addEventListener('submit', async e => {
 
 // ------------------------------------- //
 
+// Função para popular select com valores de um array
+function popularSelect(idSelect, array) {
+  const select = document.getElementById(idSelect);
+  array.sort(); // opcional: ordenar alfabeticamente
+  array.forEach(v => {
+    const option = document.createElement('option');
+    option.value = v;
+    option.textContent = v;
+    select.appendChild(option);
+  });
+}
+
+
+// Carrega os filtros ao iniciar a página
 async function carregarFiltros() {
   try {
     const res = await fetch('/api/dados', {
       headers: { 'Authorization': `Bearer ${token}` } // adiciona token
     });
     if (!res.ok) throw new Error('Erro ao carregar dados da API');
-    const dados = await res.json();
-
-    // Função para popular select com valores de um array
-    function popularSelect(idSelect, array) {
-      const select = document.getElementById(idSelect);
-      array.sort(); // opcional: ordenar alfabeticamente
-      array.forEach(v => {
-        const option = document.createElement('option');
-        option.value = v;
-        option.textContent = v;
-        select.appendChild(option);
-      });
-    }
+    const dados = await res.json();    
 
     popularSelect('filtroMesApuracao', dados.mes_apuracao);
     popularSelect('filtroMeta', dados.metas);
@@ -845,30 +862,36 @@ btnExportar.addEventListener('click', () => {
 
 // ----------------- EDICAO EM MASSA -------------------- //
 
-// Abrir modal ao clicar no botão "Editar em Massa"
-document.querySelector('.botao-classe1').addEventListener('click', () => {
-  document.getElementById('modalEditarMassa').style.display = 'flex';
+// ----------------- Modal Editar em Massa ----------------- //
+
+const modalMassa = document.getElementById('modalEditarMassa');
+const fecharModalMassa = document.getElementById('fecharModalMassa');
+const colunaSelecionada = document.getElementById('colunaSelecionada');
+const valorContainer = document.getElementById('novoValorContainer');
+
+// Abrir modal
+document.getElementById('editarEmMassa').addEventListener('click', () => {
+  modalMassa.style.display = 'flex';
 });
 
 // Fechar modal
-document.getElementById('fecharModalMassa').addEventListener('click', () => {
-  document.getElementById('modalEditarMassa').style.display = 'none';
+fecharModalMassa.addEventListener('click', () => {
+  modalMassa.style.display = 'none';
 });
 
-// Fechar modal clicando fora do conteúdo
+// Fechar clicando fora
 window.addEventListener('click', (e) => {
-  const modal = document.getElementById('modalEditarMassa');
-  if (e.target === modal) modal.style.display = 'none';
+  if (e.target === modalMassa) modalMassa.style.display = 'none';
 });
 
-// Carregar opções da API para selects
+// ----------------- Carregar opções da API ----------------- //
+
 let opcoesPorColuna = {};
-async function carregarOpcoes() {
+
+async function carregarOpcoesMassa() {
   try {
     const res = await fetch('/api/dados', {
-      headers: {
-        'Authorization': `Bearer ${token}` // envia o token
-      }
+      headers: { 'Authorization': `Bearer ${token}` }
     });
     const dados = await res.json();
 
@@ -884,65 +907,59 @@ async function carregarOpcoes() {
       particularidade: [
         { valor: 1, texto: 'Sim' },
         { valor: 0, texto: 'Não' }
-      ]     
+      ]
     };
   } catch (err) {
-    console.error(err);
+    console.error('Erro ao carregar opções da API:', err);
   }
 }
-carregarOpcoes();
 
-// Atualiza o campo de valor conforme a coluna selecionada
-const colunaSelecionada = document.getElementById('colunaSelecionada');
-const valorContainer = document.querySelector('#novoValor').parentElement;
+// Chama a API ao iniciar a página
+carregarOpcoesMassa();
+
+// ----------------- Atualiza campo de valor ----------------- //
 
 colunaSelecionada.addEventListener('change', () => {
   const coluna = colunaSelecionada.value;
 
-  // Limpa o container
-  valorContainer.innerHTML = `<label for="novoValor">Novo valor:</label>`;
+  // Sempre pega o container do input/select atual
+  const valorContainer = document.getElementById('novoValor').parentElement;
+
+  // Limpa e recria o label
+  // valorContainer.innerHTML = `<label for="novoValor">Novo valor:</label>`;
 
   const opcoes = opcoesPorColuna[coluna];
 
-  // Se a coluna é de data
-  if (['data_condominio', 'data_limite', 'data_envio'].includes(coluna)) {
-    const input = document.createElement('input');
-    input.type = 'date';
-    input.id = 'novoValor';
-    valorContainer.appendChild(input);
-  }
-  // Se há opções de select (Sim/Não ou listas)
-  else if (opcoes && opcoes.length > 0) {
-    const select = document.createElement('select');
-    select.id = 'novoValor';
+  valorContainer.innerHTML = ''; // limpa antigo input/select
 
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = 'Selecione';
-    select.appendChild(placeholder);
-
-    opcoes.forEach(v => {
-      const option = document.createElement('option');
-      if (typeof v === 'object') {
-        option.value = v.valor;
-        option.textContent = v.texto;
-      } else {
-        option.value = v;
-        option.textContent = v;
-      }
-      select.appendChild(option);
-    });
-
-    valorContainer.appendChild(select);
-  }
-  // Se não tiver nada específico, deixa input texto
-  else {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.id = 'novoValor';
-    input.placeholder = 'Digite o novo valor';
-    valorContainer.appendChild(input);
-  }
+    if (coluna === 'data_condominio' || coluna === 'data_envio') {
+      const input = document.createElement('input');
+      input.type = 'date';
+      input.id = 'novoValor';
+      valorContainer.appendChild(input);
+    } else if (opcoes && opcoes.length > 0) {
+      const select = document.createElement('select');
+      select.id = 'novoValor';
+      select.innerHTML = `<option value="">Selecione</option>`;
+      opcoes.forEach(v => {
+        const option = document.createElement('option');
+        if (typeof v === 'object') {
+          option.value = v.valor;
+          option.textContent = v.texto;
+        } else {
+          option.value = v;
+          option.textContent = v;
+        }
+        select.appendChild(option);
+      });
+      valorContainer.appendChild(select);
+    } else {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = 'novoValor';
+      input.placeholder = 'Digite o novo valor';
+      valorContainer.appendChild(input);
+    }
 });
 
 // Salvar edição em massa usando IDs filtrados
@@ -1192,18 +1209,46 @@ function mesAnoAtual() {
   return `${mes}/${ano}`;
 }
 
-// -----------FILTROS PADRÕES----------- //
+function getFiltroPorCargo() {
+  const usuario = JSON.parse(localStorage.getItem('usuario'));
+  if (!usuario) return [];
+
+  const { cargo, login } = usuario;
+  const filtrosCargo = [];
+
+  if (cargo === 'gerente') {
+    filtrosCargo.push({ id: 'filtroGerente', valor: login });
+  }
+  if (cargo === 'coordenador') {
+    filtrosCargo.push({ id: 'filtroCoordenador', valor: login });
+  }
+
+  // aqui você pode adicionar outras regras por cargo
+  return filtrosCargo;
+}
+
+function aplicarFiltrosPadrao(filtrosExtras = []) {
+  const filtros = [
+    { id: 'filtroMesApuracao', valor: mesAnoAtual() },
+    { id: 'filtroStatus', valor: 'Pendente' }
+    // { id: 'filtroMeta', valor: 'Balancete' }
+  ];
+
+  const todosFiltros = [...filtros, ...filtrosExtras];
+
+  todosFiltros.forEach(f => {
+    const el = document.getElementById(f.id);
+    if (el) el.value = f.valor;
+  });
+}
 
 window.addEventListener('DOMContentLoaded', () => {
-  carregarFiltros(); // primeiro popular os selects
-  carregarMetas().then(() => {
-    // Define o filtro mes_apuracao como mês/ano atual
-    const filtroMes = document.getElementById('filtroMesApuracao');
-    if (filtroMes) filtroMes.value = mesAnoAtual();
-
-    // Renderiza a tabela já filtrando pelo mes/ano atual
-    renderizarTabela();
-  });
+  Promise.all([carregarFiltros(), carregarMetas()])
+    .then(() => {
+      aplicarFiltrosPadrao(getFiltroPorCargo());
+      renderizarTabela();
+    })
+    .catch(err => console.error('Erro ao carregar filtros ou metas:', err));
 });
   </script>
 </body>
