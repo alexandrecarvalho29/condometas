@@ -295,6 +295,7 @@
 
       <div class="button-group">
         <button type="submit" id="salvar">Salvar Alterações</button>
+        <button type="submit" id="excluir">Excluir Meta</button>
       </div>
     </form>
   </div>
@@ -737,7 +738,7 @@ window.addEventListener('click', e => {
 });
 
 // Salvar alterações
-editForm.addEventListener('submit', async e => {
+document.getElementById('salvar').addEventListener('click', async e => {
   e.preventDefault();
 
   const id = editForm.editId.value;
@@ -787,6 +788,48 @@ editForm.addEventListener('submit', async e => {
     }
   } catch (err) {
     console.error(err);
+    alert('Erro ao conectar à API.');
+  }
+});
+
+// ------------------ EXCLUIR META ------------------- //
+
+document.getElementById('excluir').addEventListener('click', async e => {
+  e.preventDefault();
+
+  const id = editForm.editId.value;
+
+  if (!id) {
+    alert('ID da meta não encontrado.');
+    return;
+  }
+
+  // Confirmação simples
+  const confirmar = confirm('⚠️ Tem certeza que deseja excluir esta meta?\nEsta ação não poderá ser desfeita.');
+  if (!confirmar) return;
+
+  try {
+    const response = await fetch(`/api/excluirmeta/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      const index = metas.findIndex(m => String(m.id) === String(id));
+      if (index > -1) metas.splice(index, 1);
+
+      renderizarTabela();
+      modal.style.display = 'none';
+      alert('✅ Meta excluída com sucesso!');
+    } else {
+      alert(`Erro ao excluir meta: ${result.error || 'Erro desconhecido'}`);
+    }
+  } catch (err) {
+    console.error('Erro ao excluir meta:', err);
     alert('Erro ao conectar à API.');
   }
 });

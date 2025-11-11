@@ -143,6 +143,44 @@ app.put('/api/metas/:id', autenticar, async (req, res) => {
   }
 });
 
+/**
+ * EXCLUIR UMA META
+ */
+app.delete('/api/excluirmeta/:id', autenticar, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const metas = await lerAba('metas', 'metas!A:P');
+    const linha = metas.findIndex(meta => meta.id === id.toString());
+    if (linha === -1) return res.status(404).json({ error: 'Meta não encontrada' });
+
+    const linhaPlanilha = linha + 2; // +1 cabeçalho +1 base 1
+
+    // Executa a exclusão da linha
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId: SPREADSHEET_ID,
+      requestBody: {
+        requests: [
+          {
+            deleteDimension: {
+              range: {
+                sheetId: 466807243, // <-- ID fixo da aba 'metas'
+                dimension: 'ROWS',
+                startIndex: linhaPlanilha - 1, // zero-based, inclusive
+                endIndex: linhaPlanilha,       // exclusive
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    res.json({ message: 'Meta excluída com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao excluir meta:', err);
+    res.status(500).json({ error: 'Erro ao excluir meta' });
+  }
+});
 
 /**
  * Usuários
