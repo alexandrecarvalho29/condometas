@@ -498,7 +498,7 @@ app.put('/api/usuarios/:id', autenticar, async (req, res) => {
     if (index === -1) return res.status(404).json({ error: 'Usuário não encontrado' });
 
     // Permitir que apenas gerente ou coordenador edite
-    if (req.user.cargo !== 'gerente' && req.user.cargo !== 'coordenador') {
+    if (req.user.cargo !== 'gerente' && req.user.cargo !== 'coordenador' && req.user.cargo !== 'admin') {
       return res.status(403).json({ error: 'Acesso negado' });
     }
 

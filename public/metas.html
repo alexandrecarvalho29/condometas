@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Condometas - Acompanhamento de Metas</title>
   <link rel="stylesheet" href="metas.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -627,7 +629,14 @@ btnLimpar.addEventListener('click', () => {
         <td>${meta.contabil}</td>        
         <td>${meta.data_condominio}</td>
         <td>${meta.data_limite || ''}</td>
-        <td>${meta.data_envio || ''}</td>        
+        <td>
+          <input 
+            type="date" 
+            class="input-data-envio" 
+            data-id="${meta.id}" 
+            value="${meta.data_envio ? formatDateForInput(meta.data_envio) : ''}"
+          />
+        </td>        
         <td>${getStatusBadge(meta.status)}</td>
       </tr>
     `;
@@ -782,6 +791,48 @@ editForm.addEventListener('submit', async e => {
   }
 });
 
+// ------------------ EDIÇÃO RÁPIDA DE DATA_ENVIO ------------------- //
+
+
+// Atualização rápida da data_envio direto na tabela
+document.addEventListener('change', async e => {
+  if (e.target.classList.contains('input-data-envio')) {
+    const id = e.target.dataset.id;
+    const novaData = e.target.value;
+
+    // Formata a data para o formato esperado pelo backend (dd/MM/yyyy)
+    const dataFormatada = formatDateForSheets(novaData);
+
+    try {
+      const response = await fetch(`/api/metas/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ data_envio: dataFormatada })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Atualiza o array local
+        const meta = metas.find(m => m.id == id);
+        if (meta) meta.data_envio = dataFormatada;
+
+        // Atualiza a célula sem precisar recarregar toda a tabela
+        e.target.classList.add('salvo'); // efeito visual opcional
+        setTimeout(() => e.target.classList.remove('salvo'), 1000);
+      } else {
+        alert(`Erro ao salvar: ${result.error}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao conectar à API.');
+    }
+  }
+});
+
 // ------------------------------------- //
 
 // Função para popular select com valores de um array
@@ -824,41 +875,32 @@ async function carregarFiltros() {
 // Botão de exportar
 const btnExportar = document.querySelector('#exportarExcel'); 
 
-btnExportar.addEventListener('click', () => {
-  // Pega os dados filtrados
-  const metasFiltradas = filtrarMetas();
+  btnExportar.addEventListener('click', () => {
+    const metasFiltradas = filtrarMetas();
 
-  // Cria CSV
-  let csv = 'ID,Meta,Condomínio,Status,Gerente,Coordenador,Financeiro,Contábil,Data Condomínio,Data Limite,Data Envio,Não Gerar,Particularidade\n';
+    const dados = metasFiltradas.map(m => ({
+      ID: m.id,
+      Meta: m.meta,
+      Condomínio: m.condominio,
+      Status: m.status,
+      Gerente: m.gerente,
+      Coordenador: m.coordenador,
+      Financeiro: m.financeiro,
+      Contábil: m.contabil,
+      "Mês Apuração": m.mes_apuracao,
+      "Data Condomínio": m.data_condominio,
+      "Data Limite": m.data_limite,
+      "Data Envio": m.data_envio,
+      "Não Gerar": m.nao_gerar,
+      Particularidade: m.particularidade
+    }));
 
-  metasFiltradas.forEach(m => {
-    csv += [
-      m.id,
-      `"${m.meta}"`,
-      `"${m.condominio}"`,
-      m.status,
-      `"${m.gerente}"`,
-      `"${m.coordenador}"`,
-      `"${m.financeiro}"`,
-      `"${m.contabil}"`,
-      m.data_condominio,
-      m.data_limite,
-      m.data_envio,
-      m.nao_gerar,
-      m.particularidade
-    ].join(',') + '\n';
+    const ws = XLSX.utils.json_to_sheet(dados);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Metas Filtradas");
+
+    XLSX.writeFile(wb, "metas_filtradas.xlsx");
   });
-
-  // Cria link temporário pra download
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.setAttribute('download', 'metas_filtradas.csv');
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-});
 
 // ----------------- EDICAO EM MASSA -------------------- //
 

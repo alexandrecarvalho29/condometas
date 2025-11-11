@@ -197,7 +197,7 @@ function renderizarUsuarios() {
   const tabela = document.getElementById('usuariosTable');
   tabela.innerHTML = usuarios.map(u => `
     <tr>
-      <td><button class="edit-btn" data-id="${u.id}">✏️</button></td>
+      <td><button class="edit-user-btn" data-id="${u.id}">✏️</button></td>
       <td>${u.id}</td>
       <td>${u.login}</td>
       <td>${u.nome}</td>
