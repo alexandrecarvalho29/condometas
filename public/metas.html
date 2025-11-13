@@ -515,14 +515,14 @@
 
   return metas.filter(m => {
     // filtros básicos
-    if (filtros.meta && !m.meta.toLowerCase().includes(filtros.meta)) return false;
-    if (filtros.condominio && !m.condominio.toLowerCase().includes(filtros.condominio)) return false;
+    if (filtros.meta && m.meta !== filtros.meta) return false;
+    if (filtros.condominio && m.condominio.toLowerCase() !== filtros.condominio.toLowerCase()) return false;
     if (filtros.status && m.status !== filtros.status) return false;
     if (filtros.mes_apuracao && m.mes_apuracao !== filtros.mes_apuracao) return false;
-    if (filtros.financeiro && !m.financeiro.toLowerCase().includes(filtros.financeiro)) return false;
-    if (filtros.contabil && !m.contabil.toLowerCase().includes(filtros.contabil)) return false;
-    if (filtros.gerente && !m.gerente.toLowerCase().includes(filtros.gerente)) return false;
-    if (filtros.coordenador && !m.coordenador.toLowerCase().includes(filtros.coordenador)) return false;
+    if (filtros.financeiro && m.financeiro !== filtros.financeiro) return false;
+    if (filtros.contabil && m.contabil !== filtros.contabil) return false;
+    if (filtros.gerente && m.gerente !== filtros.gerente) return false;
+    if (filtros.coordenador && m.coordenador !== filtros.coordenador) return false;
     if (filtros.particularidade && Number(m.particularidade) !== Number(filtros.particularidade)) return false;
     if (filtros.nao_gerar && Number(m.nao_gerar) !== Number(filtros.nao_gerar)) return false;
 
