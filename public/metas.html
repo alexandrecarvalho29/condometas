@@ -178,7 +178,7 @@
         <button class="botao-classe1" id="editarEmMassa">Editar em Massa</button>
         <button class="botao-classe1" id="limpar-filtros">Limpar Filtros</button>
         <button class="botao-classe1" id="exportarExcel">Exportar Excel</button>
-        <button class="botao-classe2" id="novoCondominio">Novo Condomínio</button>
+        <button class="botao-classe2" id="novoCondominio">Nova Meta ou Condomínio</button>
       </section> 
     </section>
       <table>
@@ -343,14 +343,23 @@
 <div id="modalNovoCondominio" class="modal" style="display:none;">
   <div class="modal-content horizontal">
     <span class="close-btn" id="fecharModalCondominio">&times;</span>
-    <h2>Novo Condomínio</h2>
+    <h2>Nova Meta ou Condomínio</h2>
 
     <form id="formNovoCondominio">
 
       <!-- Nome do Condomínio -->
       <div class="form-group full-width">
-        <label for="nomeCondominio">Nome do Condomínio:</label>
-        <input type="text" id="nomeCondominio" name="nomeCondominio" placeholder="Digite o nome do condomínio" required>
+        <label>Condomínio:</label>
+
+        <!-- SELECT dos existentes -->
+        <select id="selectCondominio" name="selectCondominio">
+          <option value="">-- Selecionar condomínio existente --</option>
+        </select>
+
+        <small style="color:#666;">Ou digite um novo:</small>
+
+        <!-- INPUT para novo -->
+        <input type="text" id="nomeCondominioNovo" name="nomeCondominioNovo" placeholder="Novo condomínio (opcional)">
       </div>
 
       <!-- Linhas de Metas -->
@@ -1096,7 +1105,7 @@ document.getElementById('salvarEdicaoMassa').addEventListener('click', async () 
 async function carregarOpcoes() {
   try {
     const res = await fetch('/api/dados', {
-      headers: { 'Authorization': `Bearer ${token}` } // adiciona token
+      headers: { 'Authorization': `Bearer ${token}` }
     });
     const dados = await res.json();
 
@@ -1104,8 +1113,8 @@ async function carregarOpcoes() {
       condominios: dados.condominios || [],
       gerentes: dados.gerentes || [],
       coordenadores: dados.coordenadores || [],
-      analistas: dados.analistas || [], // para financeiro e contábil
-      metas: dados.metas || [] // lista de tipos de meta (balancete, taxa, etc.)
+      analistas: dados.analistas || [],
+      metas: dados.metas || []
     };
   } catch (err) {
     console.error('Erro ao carregar opções:', err);
@@ -1113,15 +1122,12 @@ async function carregarOpcoes() {
   }
 }
 
-// Função auxiliar para criar selects dinâmicos
+// Função auxiliar de select
 function criarSelect(nome, opcoes, label) {
   const select = document.createElement("select");
   select.name = nome;
 
-  const optionInicial = document.createElement("option");
-  optionInicial.value = "";
-  optionInicial.textContent = `Selecione o ${label}`;
-  select.appendChild(optionInicial);
+  select.innerHTML = `<option value="">Selecione ${label}</option>`;
 
   opcoes.forEach(v => {
     const option = document.createElement("option");
@@ -1133,38 +1139,31 @@ function criarSelect(nome, opcoes, label) {
   return select;
 }
 
-// Abrir modal e carregar opções
+// Abrir modal + carregar selects
 document.getElementById("novoCondominio").addEventListener("click", async () => {
   document.getElementById("modalNovoCondominio").style.display = "flex";
 
-  // Carrega dados da API
   const { condominios, gerentes, coordenadores, analistas, metas } = await carregarOpcoes();
 
-  // Atualiza selects das linhas existentes (se houver)
-  document.querySelectorAll("#linhasMetas .meta-linha").forEach(linha => {
-    const selects = {
-      meta: linha.querySelector('select[name="meta"]'),
-      gerente: linha.querySelector('select[name="gerente"]'),
-      coordenador: linha.querySelector('select[name="coordenador"]'),
-      financeiro: linha.querySelector('select[name="financeiro"]'),
-      contabil: linha.querySelector('select[name="contabil"]')
-    };
-
-    for (const [campo, select] of Object.entries(selects)) {
-      if (!select) continue;
-      select.innerHTML = `<option value="">Selecione o ${campo.charAt(0).toUpperCase() + campo.slice(1)}</option>`;
-    }
-
-    metas.forEach(v => selects.meta.innerHTML += `<option value="${v}">${v}</option>`);
-    gerentes.forEach(v => selects.gerente.innerHTML += `<option value="${v}">${v}</option>`);
-    coordenadores.forEach(v => selects.coordenador.innerHTML += `<option value="${v}">${v}</option>`);
-    analistas.forEach(v => {
-      selects.financeiro.innerHTML += `<option value="${v}">${v}</option>`;
-      selects.contabil.innerHTML += `<option value="${v}">${v}</option>`;
-    });
+  // Preencher o select de condomínios existentes
+  const selectCondominio = document.getElementById("selectCondominio");
+  selectCondominio.innerHTML = `<option value="">-- Selecionar condomínio existente --</option>`;
+  condominios.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c;
+    opt.textContent = c;
+    selectCondominio.appendChild(opt);
   });
 
-  // Guarda localmente para novas linhas
+  // Atualizar selects da primeira linha
+  document.querySelectorAll("#linhasMetas .meta-linha").forEach(linha => {
+    linha.querySelector('select[name="meta"]').innerHTML = `<option value="">Selecione a Meta</option>` + metas.map(m => `<option value="${m}">${m}</option>`).join("");
+    linha.querySelector('select[name="gerente"]').innerHTML = `<option value="">Gerente</option>` + gerentes.map(g => `<option value="${g}">${g}</option>`).join("");
+    linha.querySelector('select[name="coordenador"]').innerHTML = `<option value="">Coordenador</option>` + coordenadores.map(c => `<option value="${c}">${c}</option>`).join("");
+    linha.querySelector('select[name="financeiro"]').innerHTML = `<option value="">Financeiro</option>` + analistas.map(a => `<option value="${a}">${a}</option>`).join("");
+    linha.querySelector('select[name="contabil"]').innerHTML = `<option value="">Contábil</option>` + analistas.map(a => `<option value="${a}">${a}</option>`).join("");
+  });
+
   window.opcoesGlobais = { condominios, gerentes, coordenadores, analistas, metas };
 });
 
@@ -1173,91 +1172,101 @@ document.getElementById("fecharModalCondominio").addEventListener("click", () =>
   document.getElementById("modalNovoCondominio").style.display = "none";
 });
 
-// Adicionar nova linha de meta
+// Adicionar nova linha
 document.getElementById("adicionarLinha").addEventListener("click", () => {
   const { gerentes, coordenadores, analistas, metas } = window.opcoesGlobais || {
     gerentes: [], coordenadores: [], analistas: [], metas: []
   };
 
   const container = document.getElementById("linhasMetas");
-  const novaLinha = document.createElement("div");
-  novaLinha.classList.add("meta-linha");
+  const linha = document.createElement("div");
+  linha.classList.add("meta-linha");
 
-  // Função auxiliar para criar coluna label+select
-  function criarColuna(labelText, nomeSelect, opcoes) {
-    const coluna = document.createElement("div");
-    coluna.classList.add("coluna");
+  function criarColuna(labelText, name, opcoes) {
+    const div = document.createElement("div");
+    div.classList.add("coluna");
 
     const label = document.createElement("label");
     label.textContent = labelText;
-    coluna.appendChild(label);
+    div.appendChild(label);
 
-    const select = criarSelect(nomeSelect, opcoes, labelText);
-    coluna.appendChild(select);
+    const select = criarSelect(name, opcoes, labelText);
+    div.appendChild(select);
 
-    return coluna;
+    return div;
   }
 
-  // Criando todas as colunas
-  const colMeta = criarColuna("Meta", "meta", metas);
-  const colGerente = criarColuna("Gerente", "gerente", gerentes);
-  const colCoord = criarColuna("Coordenador", "coordenador", coordenadores);
-  const colFinanceiro = criarColuna("Financeiro", "financeiro", analistas);
-  const colContabil = criarColuna("Contábil", "contabil", analistas);
+  linha.appendChild(criarColuna("Meta", "meta", metas));
+  linha.appendChild(criarColuna("Gerente", "gerente", gerentes));
+  linha.appendChild(criarColuna("Coordenador", "coordenador", coordenadores));
+  linha.appendChild(criarColuna("Financeiro", "financeiro", analistas));
+  linha.appendChild(criarColuna("Contábil", "contabil", analistas));
 
-  const colunaData = document.createElement("div");
-  colunaData.classList.add("coluna");
-  const labelData = document.createElement("label");
-  labelData.textContent = "Data Condomínio";
-  const inputData = document.createElement("input");
-  inputData.type = "date";
-  inputData.name = "dataCondominio";
-  colunaData.append(labelData, inputData);
+  const colData = document.createElement("div");
+  colData.classList.add("coluna");
+  colData.innerHTML = `
+    <label>Data Condomínio</label>
+    <input type="date" name="dataCondominio">
+  `;
+  linha.appendChild(colData);
 
-  const btnRemover = document.createElement("button");
-  btnRemover.type = "button";
-  btnRemover.classList.add("remover-linha");
-  btnRemover.textContent = "🗑️";
+  const btn = document.createElement("button");
+  btn.classList.add("remover-linha");
+  btn.textContent = "🗑️";
+  btn.type = "button";
+  linha.appendChild(btn);
 
-  novaLinha.append(colMeta, colGerente, colCoord, colFinanceiro, colContabil, colunaData, btnRemover);
-  container.appendChild(novaLinha);
+  container.appendChild(linha);
 });
 
-// Remover linha dinamicamente
+// Remover linha
 document.getElementById("linhasMetas").addEventListener("click", (e) => {
   if (e.target.classList.contains("remover-linha")) {
     e.target.parentElement.remove();
   }
 });
 
-// Submeter formulário
+// SUBMIT — novo condomínio OU adicionar metas
 document.getElementById("formNovoCondominio").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const nome = document.getElementById("nomeCondominio").value.trim();
-  if (!nome) {
-    alert("Por favor, insira o nome do condomínio.");
+  const condSelect = document.getElementById("selectCondominio").value;
+  const condNovo = document.getElementById("nomeCondominioNovo").value.trim();
+  let nomeCondominioFinal = "";
+
+  // Caso 1: selecionou condomínio existente
+  if (condSelect) {
+    nomeCondominioFinal = condSelect;
+
+  // Caso 2: digitou novo nome
+  } else if (condNovo) {
+    const existentes = window.opcoesGlobais?.condominios || [];
+
+    if (existentes.includes(condNovo)) {
+      alert("❌ Este condomínio já existe. Selecione no campo acima.");
+      return;
+    }
+
+    nomeCondominioFinal = condNovo;
+
+  // Caso 3: nenhum informado
+  } else {
+    alert("Selecione um condomínio existente ou digite um novo.");
     return;
   }
 
-  // Verificar se o condomínio já existe
-  const condominiosExistentes = window.opcoesGlobais?.condominios || [];
-  if (condominiosExistentes.some(c => c.toLowerCase() === nome.toLowerCase())) {
-    alert("❌ Este condomínio já está cadastrado!");
-    return;
-  }
-
-  const metas = [...document.querySelectorAll("#linhasMetas .meta-linha")].map(linha => ({
-    meta: linha.querySelector('select[name="meta"]').value,
-    gerente: linha.querySelector('select[name="gerente"]').value,
-    coordenador: linha.querySelector('select[name="coordenador"]').value,
-    financeiro: linha.querySelector('select[name="financeiro"]').value,
-    contabil: linha.querySelector('select[name="contabil"]').value,
-    data_condominio: linha.querySelector('input[name="dataCondominio"]').value
+  // Coletar metas
+  const metas = [...document.querySelectorAll(".meta-linha")].map(l => ({
+    meta: l.querySelector('select[name="meta"]').value,
+    gerente: l.querySelector('select[name="gerente"]').value,
+    coordenador: l.querySelector('select[name="coordenador"]').value,
+    financeiro: l.querySelector('select[name="financeiro"]').value,
+    contabil: l.querySelector('select[name="contabil"]').value,
+    data_condominio: l.querySelector('input[name="dataCondominio"]').value
   }));
 
   if (metas.length === 0) {
-    alert("Adicione ao menos uma linha de meta.");
+    alert("Adicione ao menos uma meta.");
     return;
   }
 
@@ -1266,10 +1275,13 @@ document.getElementById("formNovoCondominio").addEventListener("submit", async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        
         'Authorization': `Bearer ${token}`
-     },
-      body: JSON.stringify({ nomeCondominio: nome, metas })
+      },
+      body: JSON.stringify({
+        nomeCondominio: nomeCondominioFinal,
+        metas,
+        tipoOperacao: condSelect ? "adicionarMeta" : "novoCondominio"
+      })
     });
 
     const data = await res.json();
@@ -1277,11 +1289,13 @@ document.getElementById("formNovoCondominio").addEventListener("submit", async (
 
     alert(`✅ ${data.message}`);
     document.getElementById("modalNovoCondominio").style.display = "none";
+
     e.target.reset();
     document.getElementById("linhasMetas").innerHTML = "";
+
   } catch (err) {
     console.error(err);
-    alert("❌ Erro ao salvar o novo condomínio.");
+    alert("❌ Erro ao salvar.");
   }
 });
 

@@ -1264,3 +1264,12 @@ input[readonly] {
   font-weight: 600;
   font-family: 'Inter', sans-serif;
 }
+
+/* Ajuste solicitado: aumentar tamanho dos campos de condomínio */
+#modalNovoCondominio #selectCondominio,
+#modalNovoCondominio #nomeCondominioNovo {
+  width: 500px;
+  max-width: 100%;
+  padding: 8px 10px;
+  font-size: 1rem;
+}
