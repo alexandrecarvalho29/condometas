@@ -6,6 +6,7 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
+const stream = require('stream');
 
 const app = express();
 
@@ -209,14 +210,11 @@ app.post('/api/novoUsuario', autenticar, async (req, res) => {
     const aba = 'usuarios';
     const rangeLeitura = `${aba}!A:G`;
 
-    // Ler usuários existentes
-    const dadosExistentes = await lerAba(aba, rangeLeitura);
-    const ultimoId = Math.max(...dadosExistentes.map(u => Number(u.id) || 0), 0);
     const senhaPadrao = "$2b$12$SafcGB.Y7vBzr1FB/KzVs.Ytm91/1IrUSQ0wp4..syc/fLZlb4dSS"
 
     // Novo usuário
     const novoUsuario = [
-      ultimoId + 1,            // A - id
+      uuidv4(),                // A - id
       login,                   // B - login
       nome,                    // C - nome
       email,                   // D - email
@@ -361,11 +359,10 @@ app.post('/api/novoCondominio', autenticar, async (req, res) => {
 
     // Ler planilha existente
     const dadosExistentes = await lerAba(aba, rangeLeitura);
-    const ultimoId = Math.max(...dadosExistentes.map(m => Number(m.id) || 0), 0);
 
     // Criar novas linhas (A:H + I:P)
     const novasLinhas = metas.map((meta, i) => {
-      const novoId = ultimoId + i + 1;
+      const novoId = uuidv4();
 
       // Tratamento da data
       let dataCondominio = meta.data_condominio || '';

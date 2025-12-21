@@ -1101,6 +1101,272 @@ document.getElementById('salvarEdicaoMassa').addEventListener('click', async () 
 });
 
 // --------------MODAL NOVO CONDOMINIO--------------- //
+// Carrega opções do backend (/api/dados)
+async function carregarOpcoes() {
+  try {
+    const res = await fetch('/api/dados', {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
+    const dados = await res.json();
+
+    return {
+      condominios: dados.condominios || [],
+      gerentes: dados.gerentes || [],
+      coordenadores: dados.coordenadores || [],
+      analistas: dados.analistas || [],
+      metas: dados.metas || []
+    };
+  } catch (err) {
+    console.error('Erro ao carregar opções:', err);
+    return { condominios: [], gerentes: [], coordenadores: [], analistas: [], metas: [] };
+  }
+}
+
+// Função auxiliar de select — recebe array de strings
+function criarSelect(nome, opcoes = [], label) {
+  const select = document.createElement("select");
+  select.name = nome;
+  select.innerHTML = `<option value="">Selecione ${label}</option>`;
+
+  (opcoes || []).forEach(v => {
+    const option = document.createElement("option");
+    option.value = v;
+    option.textContent = v;
+    select.appendChild(option);
+  });
+
+  return select;
+}
+
+// Função para popular os selects existentes em uma linha (DOM element)
+function popularSelectsDaLinha(linha, opcoesGlobais) {
+  // protege caso a linha não possua os selects (robustez)
+  const metaSelect = linha.querySelector('select[name="meta"]');
+  const gerenteSelect = linha.querySelector('select[name="gerente"]');
+  const coordenadorSelect = linha.querySelector('select[name="coordenador"]');
+  const financeiroSelect = linha.querySelector('select[name="financeiro"]');
+  const contabilSelect = linha.querySelector('select[name="contabil"]');
+
+  if (metaSelect) {
+    metaSelect.innerHTML = `<option value="">Selecione a Meta</option>` + (opcoesGlobais.metas || []).map(m => `<option value="${m}">${m}</option>`).join("");
+  }
+  if (gerenteSelect) {
+    gerenteSelect.innerHTML = `<option value="">Gerente</option>` + (opcoesGlobais.gerentes || []).map(g => `<option value="${g}">${g}</option>`).join("");
+  }
+  if (coordenadorSelect) {
+    coordenadorSelect.innerHTML = `<option value="">Coordenador</option>` + (opcoesGlobais.coordenadores || []).map(c => `<option value="${c}">${c}</option>`).join("");
+  }
+  if (financeiroSelect) {
+    financeiroSelect.innerHTML = `<option value="">Financeiro</option>` + (opcoesGlobais.analistas || []).map(a => `<option value="${a}">${a}</option>`).join("");
+  }
+  if (contabilSelect) {
+    contabilSelect.innerHTML = `<option value="">Contábil</option>` + (opcoesGlobais.analistas || []).map(a => `<option value="${a}">${a}</option>`).join("");
+  }
+}
+
+// Cria uma nova linha DOM já populada com as opções fornecidas
+function criarLinhaDOM(opcoesGlobais = { metas: [], gerentes: [], coordenadores: [], analistas: [] }) {
+  const linha = document.createElement("div");
+  linha.classList.add("meta-linha");
+
+  function criarColuna(labelText, name, opcoes) {
+    const div = document.createElement("div");
+    div.classList.add("coluna");
+
+    const label = document.createElement("label");
+    label.textContent = labelText;
+    div.appendChild(label);
+
+    const select = criarSelect(name, opcoes, labelText);
+    div.appendChild(select);
+
+    return div;
+  }
+
+  linha.appendChild(criarColuna("Meta", "meta", opcoesGlobais.metas));
+  linha.appendChild(criarColuna("Gerente", "gerente", opcoesGlobais.gerentes));
+  linha.appendChild(criarColuna("Coordenador", "coordenador", opcoesGlobais.coordenadores));
+  linha.appendChild(criarColuna("Financeiro", "financeiro", opcoesGlobais.analistas));
+  linha.appendChild(criarColuna("Contábil", "contabil", opcoesGlobais.analistas));
+
+  const colData = document.createElement("div");
+  colData.classList.add("coluna");
+  colData.innerHTML = `
+    <label>Data Condomínio</label>
+    <input type="date" name="dataCondominio">
+  `;
+  linha.appendChild(colData);
+
+  const btn = document.createElement("button");
+  btn.classList.add("remover-linha");
+  btn.textContent = "🗑️";
+  btn.type = "button";
+  linha.appendChild(btn);
+
+  return linha;
+}
+
+/* ---------------- Abrir modal + carregar selects ---------------- */
+document.getElementById("novoCondominio").addEventListener("click", async () => {
+  // mostra modal
+  document.getElementById("modalNovoCondominio").style.display = "flex";
+
+  // carrega opções do backend e salva globalmente
+  const opcoes = await carregarOpcoes();
+  window.opcoesGlobais = opcoes;
+
+  // preencher select de condomínios existentes
+  const selectCondominio = document.getElementById("selectCondominio");
+  if (selectCondominio) {
+    selectCondominio.innerHTML = `<option value="">-- Selecionar condomínio existente --</option>`;
+    (opcoes.condominios || []).forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      selectCondominio.appendChild(opt);
+    });
+  }
+
+  // popula selects de linhas já existentes (se houver)
+  const linhas = document.querySelectorAll("#linhasMetas .meta-linha");
+  if (linhas.length > 0) {
+    linhas.forEach(linha => popularSelectsDaLinha(linha, opcoes));
+  }
+
+  // Se não houver nenhuma linha, cria automaticamente uma nova (garante que não abra vazio)
+  const container = document.getElementById("linhasMetas");
+  if (!container) {
+    console.error('Container #linhasMetas não encontrado no DOM.');
+    return;
+  }
+  if (container.children.length === 0) {
+    const nova = criarLinhaDOM(opcoes);
+    container.appendChild(nova);
+  }
+
+  // Observação: se houver linhas mas foram removidos os selects (markup custom), a função acima popula corretamente.
+});
+
+/* ---------------- Fechar modal ---------------- */
+document.getElementById("fecharModalCondominio").addEventListener("click", () => {
+  document.getElementById("modalNovoCondominio").style.display = "none";
+});
+
+/* ---------------- Adicionar nova linha (garante opcoes carregadas) ---------------- */
+document.getElementById("adicionarLinha").addEventListener("click", async () => {
+  // Se opcoesGlobais não estiverem carregadas, carrega aqui (on-demand)
+  if (!window.opcoesGlobais) {
+    window.opcoesGlobais = await carregarOpcoes();
+  }
+  const { gerentes, coordenadores, analistas, metas } = window.opcoesGlobais || {
+    gerentes: [], coordenadores: [], analistas: [], metas: []
+  };
+
+  const container = document.getElementById("linhasMetas");
+  if (!container) {
+    console.error('Container #linhasMetas não encontrado no DOM.');
+    return;
+  }
+
+  const linha = criarLinhaDOM({ metas, gerentes, coordenadores, analistas });
+  container.appendChild(linha);
+});
+
+/* ---------------- Remover linha (delegation) ---------------- */
+document.getElementById("linhasMetas").addEventListener("click", (e) => {
+  if (e.target.classList.contains("remover-linha")) {
+    const parent = e.target.parentElement;
+    parent.remove();
+
+    // Se removeu todas as linhas, cria uma linha vazia automaticamente
+    const container = document.getElementById("linhasMetas");
+    if (container.children.length === 0) {
+      // Garante que opcoesGlobais estejam carregadas
+      (async () => {
+        if (!window.opcoesGlobais) window.opcoesGlobais = await carregarOpcoes();
+        const nova = criarLinhaDOM(window.opcoesGlobais);
+        container.appendChild(nova);
+      })();
+    }
+  }
+});
+
+/* ---------------- SUBMIT — novo condomínio OU adicionar metas ---------------- */
+document.getElementById("formNovoCondominio").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const condSelect = document.getElementById("selectCondominio")?.value;
+  const condNovo = document.getElementById("nomeCondominioNovo")?.value.trim();
+  let nomeCondominioFinal = "";
+
+  if (condSelect) {
+    nomeCondominioFinal = condSelect;
+  } else if (condNovo) {
+    const existentes = window.opcoesGlobais?.condominios || [];
+    if (existentes.includes(condNovo)) {
+      alert("❌ Este condomínio já existe. Selecione no campo acima.");
+      return;
+    }
+    nomeCondominioFinal = condNovo;
+  } else {
+    alert("Selecione um condomínio existente ou digite um novo.");
+    return;
+  }
+
+  // Coletar metas (somente linhas visíveis)
+  const metas = [...document.querySelectorAll(".meta-linha")].map(l => ({
+    meta: l.querySelector('select[name="meta"]')?.value || "",
+    gerente: l.querySelector('select[name="gerente"]')?.value || "",
+    coordenador: l.querySelector('select[name="coordenador"]')?.value || "",
+    financeiro: l.querySelector('select[name="financeiro"]')?.value || "",
+    contabil: l.querySelector('select[name="contabil"]')?.value || "",
+    data_condominio: l.querySelector('input[name="dataCondominio"]')?.value || ""
+  }));
+
+  // Se por algum motivo não existir linha (proteção extra)
+  if (!metas || metas.length === 0) {
+    alert("Adicione ao menos uma meta.");
+    return;
+  }
+
+  // Validação: não permitir enviar linhas com campos obrigatórios vazios
+  for (let i = 0; i < metas.length; i++) {
+    const m = metas[i];
+    // Aqui você pode ajustar quais campos são realmente obrigatórios
+    if (!m.meta || !m.gerente || !m.coordenador || !m.financeiro || !m.contabil) {
+      alert(`Preencha todos os campos da meta na linha ${i + 1}.`);
+      return;
+    }
+  }
+
+  try {
+    const res = await fetch("/api/novoCondominio", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({
+        nomeCondominio: nomeCondominioFinal,
+        metas,
+        tipoOperacao: condSelect ? "adicionarMeta" : "novoCondominio"
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro ao salvar');
+
+    alert(`✅ ${data.message}`);
+    document.getElementById("modalNovoCondominio").style.display = "none";
+
+    // resetar form e container
+    e.target.reset();
+    document.getElementById("linhasMetas").innerHTML = "";
+  } catch (err) {
+    console.error('Erro no submit novoCondominio:', err);
+    alert("❌ Erro ao salvar.");
+  }
+});
 
 async function carregarOpcoes() {
   try {
