@@ -5,10 +5,36 @@ const { google } = require('googleapis');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const { v4: uuidv4 } = require('uuid');
 const stream = require('stream');
 
 const app = express();
+
+/**
+ * Gerar ID sequencial único com retry para evitar colisões em requisições simultâneas
+ */
+async function gerarIdUnico(aba, dadosExistentes, maxRetries = 3) {
+  let ultimoId = Math.max(...dadosExistentes.map(item => Number(item.id) || 0), 0);
+  let novoId = ultimoId + 1;
+  let tentativas = 0;
+
+  while (tentativas < maxRetries) {
+    const idJaExiste = dadosExistentes.some(item => Number(item.id) === novoId);
+    
+    if (!idJaExiste) {
+      return novoId;
+    }
+
+    novoId++;
+    tentativas++;
+    
+    const novosDados = await lerAba(aba, `${aba}!A:G`);
+    if (novosDados.some(item => Number(item.id) === novoId)) {
+      novoId = Math.max(...novosDados.map(item => Number(item.id) || 0), 0) + 1;
+    }
+  }
+
+  return ultimoId + 1000 + Date.now() % 1000;
+}
 
 // Middleware
 app.use(express.json());
@@ -210,11 +236,13 @@ app.post('/api/novoUsuario', autenticar, async (req, res) => {
     const aba = 'usuarios';
     const rangeLeitura = `${aba}!A:G`;
 
+    const dadosExistentes = await lerAba(aba, rangeLeitura);
+    const novoId = await gerarIdUnico(aba, dadosExistentes);
+    
     const senhaPadrao = "$2b$12$SafcGB.Y7vBzr1FB/KzVs.Ytm91/1IrUSQ0wp4..syc/fLZlb4dSS"
 
-    // Novo usuário
     const novoUsuario = [
-      uuidv4(),                // A - id
+      novoId,                  // A - id
       login,                   // B - login
       nome,                    // C - nome
       email,                   // D - email
@@ -360,9 +388,9 @@ app.post('/api/novoCondominio', autenticar, async (req, res) => {
     // Ler planilha existente
     const dadosExistentes = await lerAba(aba, rangeLeitura);
 
-    // Criar novas linhas (A:H + I:P)
+    let proximoId = Math.max(...dadosExistentes.map(m => Number(m.id) || 0), 0) + 1;
     const novasLinhas = metas.map((meta, i) => {
-      const novoId = uuidv4();
+      const novoId = proximoId + i;
 
       // Tratamento da data
       let dataCondominio = meta.data_condominio || '';
