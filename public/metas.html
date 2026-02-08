@@ -66,56 +66,56 @@
       
       <div class="filter-group">
           <label for="filtroMesApuracao">Mês Apuração</label>
-          <select id="filtroMesApuracao">
+          <select id="filtroMesApuracao" multiple>
               <option value="">Todos os Meses</option> 
           </select>
       </div>
 
       <div class="filter-group">
           <label for="filtroMeta">Meta</label>
-          <select id="filtroMeta">
+          <select id="filtroMeta" multiple>
               <option value="">Todas as Metas</option>
           </select>
       </div>
 
       <div class="filter-group">
           <label for="filtroCondominio">Condomínio</label>
-          <select id="filtroCondominio">
+          <select id="filtroCondominio" multiple>
               <option value="">Todos os Condomínios</option>
           </select>
       </div>
 
       <div class="filter-group">
           <label for="filtroGerente">Gerente</label>
-          <select id="filtroGerente">
+          <select id="filtroGerente" multiple>
               <option value="">Todos os Gerentes</option>
           </select>
       </div>
 
       <div class="filter-group">
           <label for="filtroCoordenador">Coordenador</label>
-          <select id="filtroCoordenador">
+          <select id="filtroCoordenador" multiple>
               <option value="">Todos os Coordenadores</option>
           </select>
       </div>
 
       <div class="filter-group">
           <label for="filtroFinanceiro">Financeiro</label>
-          <select id="filtroFinanceiro">
+          <select id="filtroFinanceiro" multiple>
               <option value="">Todos os Financeiros</option>
           </select>
       </div>
 
       <div class="filter-group">
           <label for="filtroContabil">Contábil</label>
-          <select id="filtroContabil">
+          <select id="filtroContabil" multiple>
               <option value="">Todos os Contábeis</option>
           </select>
       </div>
 
       <div class="filter-group">
           <label for="filtroStatus">Status</label>
-          <select id="filtroStatus">
+          <select id="filtroStatus" multiple>
               <option value="">Todos os Status</option>
               <option value="Pendente">Pendente</option>
               <option value="Atrasado">Atrasado</option>
@@ -125,7 +125,7 @@
 
       <div class="filter-group">
           <label for="filtroParticularidade">Particularidade</label>
-          <select id="filtroParticularidade">
+          <select id="filtroParticularidade" multiple>
             <option value="">Todos</option>
             <option value=1>Sim</option>
             <option value=0>Não</option>
@@ -134,7 +134,7 @@
 
       <div class="filter-group">
           <label for="filtroNaoGerar">Não gerar</label>
-          <select id="filtroNaoGerar">
+          <select id="filtroNaoGerar" multiple>
             <option value="">Todos</option>
             <option value=1>Sim</option>
             <option value=0>Não</option>
@@ -494,18 +494,197 @@
 
 // ------------------------ FILTRAR METAS ---------------------------- //
 
+  function updateMultiSelectLabel(select) {
+    const wrapper = select.closest('.multi-select');
+    if (!wrapper) return;
+    const btn = wrapper.querySelector('.multi-select__btn');
+    if (!btn) return;
+
+    const selected = Array.from(select.selectedOptions || [])
+      .map(o => o.textContent)
+      .filter(t => t && t.trim() !== '');
+
+    if (selected.length === 0) {
+      const firstOption = select.querySelector('option[value=""]');
+      btn.textContent = firstOption ? firstOption.textContent : 'Selecionar';
+      return;
+    }
+
+    if (selected.length <= 2) {
+      btn.textContent = selected.join(', ');
+      return;
+    }
+
+    btn.textContent = `${selected.length} selecionados`;
+  }
+
+  function syncMultiSelectUI(select) {
+    const wrapper = select.closest('.multi-select');
+    if (!wrapper) return;
+    const checkboxes = wrapper.querySelectorAll('input[type="checkbox"][data-value]');
+    checkboxes.forEach(cb => {
+      cb.checked = Array.from(select.selectedOptions || []).some(o => o.value === cb.dataset.value);
+    });
+    updateMultiSelectLabel(select);
+  }
+
+  function buildMultiSelectOptions(select, panel) {
+    panel.innerHTML = '';
+
+    const search = document.createElement('input');
+    search.type = 'text';
+    search.className = 'multi-select__search';
+    search.placeholder = 'Digite para filtrar...';
+    panel.appendChild(search);
+
+    Array.from(select.options || []).forEach(opt => {
+      if (opt.value === '') return;
+      const label = document.createElement('label');
+      label.className = 'multi-select__option';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.dataset.value = opt.value;
+      checkbox.checked = opt.selected;
+
+      const text = document.createElement('span');
+      text.textContent = opt.textContent;
+
+      label.appendChild(checkbox);
+      label.appendChild(text);
+      panel.appendChild(label);
+    });
+
+    search.addEventListener('input', () => {
+      const q = search.value.trim().toLowerCase();
+      panel.querySelectorAll('.multi-select__option').forEach(optEl => {
+        const text = optEl.textContent.toLowerCase();
+        optEl.style.display = text.includes(q) ? 'flex' : 'none';
+      });
+    });
+  }
+
+  function enhanceMultiSelect(select) {
+    if (select.dataset.enhanced === 'true') {
+      const panel = select.closest('.multi-select')?.querySelector('.multi-select__panel');
+      if (panel) buildMultiSelectOptions(select, panel);
+      syncMultiSelectUI(select);
+      return;
+    }
+
+    select.dataset.enhanced = 'true';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'multi-select';
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'multi-select__btn';
+    btn.textContent = 'Selecionar';
+
+    const panel = document.createElement('div');
+    panel.className = 'multi-select__panel';
+
+    select.classList.add('multi-select__native');
+    select.parentNode.insertBefore(wrapper, select);
+    wrapper.appendChild(select);
+    wrapper.appendChild(btn);
+    wrapper.appendChild(panel);
+
+    buildMultiSelectOptions(select, panel);
+    updateMultiSelectLabel(select);
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      wrapper.classList.toggle('open');
+      if (wrapper.classList.contains('open')) {
+        adjustMultiSelectWidth(wrapper);
+        const search = wrapper.querySelector('.multi-select__search');
+        if (search) search.focus();
+      }
+    });
+
+    panel.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const search = e.target.closest('.multi-select__search');
+      if (search) return;
+      const label = e.target.closest('.multi-select__option');
+      if (!label) return;
+      const cb = label.querySelector('input[type="checkbox"]');
+      if (!cb) return;
+      cb.checked = !cb.checked;
+      const opt = Array.from(select.options || []).find(o => o.value === cb.dataset.value);
+      if (opt) opt.selected = cb.checked;
+      updateMultiSelectLabel(select);
+      select.dispatchEvent(new Event('change'));
+    });
+
+    select.addEventListener('change', () => syncMultiSelectUI(select));
+  }
+
+  function initMultiSelects() {
+    document.querySelectorAll('#filtros select[multiple]').forEach(enhanceMultiSelect);
+  }
+
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.multi-select.open').forEach(w => w.classList.remove('open'));
+  });
+
+  function measureTextWidth(text, font) {
+    const canvas = measureTextWidth.canvas || (measureTextWidth.canvas = document.createElement('canvas'));
+    const ctx = canvas.getContext('2d');
+    ctx.font = font || '14px Arial';
+    return ctx.measureText(text).width;
+  }
+
+  function adjustMultiSelectWidth(wrapper) {
+    const panel = wrapper.querySelector('.multi-select__panel');
+    const btn = wrapper.querySelector('.multi-select__btn');
+    if (!panel || !btn) return;
+
+    const optionEls = panel.querySelectorAll('.multi-select__option span');
+    let maxTextWidth = 0;
+    optionEls.forEach(span => {
+      const font = window.getComputedStyle(span).font;
+      const w = measureTextWidth(span.textContent || '', font);
+      if (w > maxTextWidth) maxTextWidth = w;
+    });
+
+    // checkbox (16) + gap (8) + padding (12) + scrollbar (18)
+    const desired = maxTextWidth + 54;
+    const minWidth = btn.offsetWidth;
+    const maxWidth = 520;
+    const finalWidth = Math.min(Math.max(desired, minWidth), maxWidth);
+
+    panel.style.width = `${finalWidth}px`;
+  }
+
+  function getSelectedValues(id) {
+    const select = document.getElementById(id);
+    if (!select) return [];
+    return Array.from(select.selectedOptions || []).map(o => o.value).filter(v => v !== '');
+  }
+
+  function getSelectedValuesLower(id) {
+    return getSelectedValues(id).map(v => v.toLowerCase());
+  }
+
+  function getSelectedValuesNumber(id) {
+    return getSelectedValues(id).map(v => Number(v));
+  }
+
   function filtrarMetas() {
   const filtros = {
-    meta: document.getElementById('filtroMeta').value.toLowerCase(),
-    condominio: document.getElementById('filtroCondominio').value.toLowerCase(),
-    status: document.getElementById('filtroStatus').value,
-    mes_apuracao: document.getElementById('filtroMesApuracao').value,
-    financeiro: document.getElementById('filtroFinanceiro').value.toLowerCase(),
-    contabil: document.getElementById('filtroContabil').value.toLowerCase(),
-    gerente: document.getElementById('filtroGerente').value.toLowerCase(),
-    coordenador: document.getElementById('filtroCoordenador').value.toLowerCase(),
-    particularidade: document.getElementById('filtroParticularidade').value,
-    nao_gerar: document.getElementById('filtroNaoGerar').value,
+    meta: getSelectedValuesLower('filtroMeta'),
+    condominio: getSelectedValuesLower('filtroCondominio'),
+    status: getSelectedValues('filtroStatus'),
+    mes_apuracao: getSelectedValues('filtroMesApuracao'),
+    financeiro: getSelectedValuesLower('filtroFinanceiro'),
+    contabil: getSelectedValuesLower('filtroContabil'),
+    gerente: getSelectedValuesLower('filtroGerente'),
+    coordenador: getSelectedValuesLower('filtroCoordenador'),
+    particularidade: getSelectedValuesNumber('filtroParticularidade'),
+    nao_gerar: getSelectedValuesNumber('filtroNaoGerar'),
 
     dataInicioCondominio: document.getElementById('dataInicio-condominio').value,
     dataFimCondominio: document.getElementById('dataFim-condominio').value,
@@ -524,16 +703,16 @@
 
   return metas.filter(m => {
     // filtros básicos
-    if (filtros.meta && m.meta !== filtros.meta) return false;
-    if (filtros.condominio && m.condominio.toLowerCase() !== filtros.condominio.toLowerCase()) return false;
-    if (filtros.status && m.status !== filtros.status) return false;
-    if (filtros.mes_apuracao && m.mes_apuracao !== filtros.mes_apuracao) return false;
-    if (filtros.financeiro && m.financeiro !== filtros.financeiro) return false;
-    if (filtros.contabil && m.contabil !== filtros.contabil) return false;
-    if (filtros.gerente && m.gerente !== filtros.gerente) return false;
-    if (filtros.coordenador && m.coordenador !== filtros.coordenador) return false;
-    if (filtros.particularidade && Number(m.particularidade) !== Number(filtros.particularidade)) return false;
-    if (filtros.nao_gerar && Number(m.nao_gerar) !== Number(filtros.nao_gerar)) return false;
+    if (filtros.meta.length && !filtros.meta.includes((m.meta || '').toLowerCase())) return false;
+    if (filtros.condominio.length && !filtros.condominio.includes((m.condominio || '').toLowerCase())) return false;
+    if (filtros.status.length && !filtros.status.includes(m.status)) return false;
+    if (filtros.mes_apuracao.length && !filtros.mes_apuracao.includes(m.mes_apuracao)) return false;
+    if (filtros.financeiro.length && !filtros.financeiro.includes((m.financeiro || '').toLowerCase())) return false;
+    if (filtros.contabil.length && !filtros.contabil.includes((m.contabil || '').toLowerCase())) return false;
+    if (filtros.gerente.length && !filtros.gerente.includes((m.gerente || '').toLowerCase())) return false;
+    if (filtros.coordenador.length && !filtros.coordenador.includes((m.coordenador || '').toLowerCase())) return false;
+    if (filtros.particularidade.length && !filtros.particularidade.includes(Number(m.particularidade))) return false;
+    if (filtros.nao_gerar.length && !filtros.nao_gerar.includes(Number(m.nao_gerar))) return false;
 
     // filtros de datas
     const dataCond = parseDate(m.data_condominio);
@@ -569,9 +748,14 @@ btnLimpar.addEventListener('click', () => {
   filtros.forEach(input => {
     if (input.type === 'checkbox') {
       input.checked = false; // desmarca checkboxes
-    } else {
-      input.value = ''; // limpa inputs e selects
+      return;
     }
+    if (input.tagName === 'SELECT' && input.multiple) {
+      Array.from(input.options).forEach(opt => { opt.selected = false; });
+      syncMultiSelectUI(input);
+      return;
+    }
+    input.value = ''; // limpa inputs e selects
   });
 
   filtrarMetas();
@@ -1592,6 +1776,22 @@ function getFiltroPorCargo() {
   return filtrosCargo;
 }
 
+function setSelectValues(id, values) {
+  const select = document.getElementById(id);
+  if (!select) return;
+  const valuesArr = Array.isArray(values) ? values : [values];
+  const valuesSet = new Set(valuesArr.filter(v => v !== undefined && v !== null).map(v => String(v)));
+
+  if (select.multiple) {
+    Array.from(select.options).forEach(opt => {
+      opt.selected = valuesSet.has(opt.value);
+    });
+    syncMultiSelectUI(select);
+  } else {
+    select.value = valuesArr[0] ?? '';
+  }
+}
+
 function aplicarFiltrosPadrao(filtrosExtras = []) {
   const filtros = [
     { id: 'filtroMesApuracao', valor: mesAnoAtual() },
@@ -1601,15 +1801,13 @@ function aplicarFiltrosPadrao(filtrosExtras = []) {
 
   const todosFiltros = [...filtros, ...filtrosExtras];
 
-  todosFiltros.forEach(f => {
-    const el = document.getElementById(f.id);
-    if (el) el.value = f.valor;
-  });
+  todosFiltros.forEach(f => setSelectValues(f.id, f.valor));
 }
 
 window.addEventListener('DOMContentLoaded', () => {
   Promise.all([carregarFiltros(), carregarMetas()])
     .then(() => {
+      initMultiSelects();
       aplicarFiltrosPadrao(getFiltroPorCargo());
       renderizarTabela();
     })
